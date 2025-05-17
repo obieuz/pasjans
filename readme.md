@@ -24,3 +24,10 @@
      [K♥]
      [7♦]
 ```
+
+## Mechanika dodawanie kart
+
+Chce aby ruszalo sie strzalkami <- -> lewo prawo i enterem selectowalo sie karte
+niech ta karta wtedy swieci sie na zielono
+
+fajnie by bylo by co ruch odswiezalo sie karty i czyscilo poprzednie
