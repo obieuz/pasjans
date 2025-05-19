@@ -37,3 +37,9 @@ klawiatura
 ## Dodac licznik czasu i ruchów
 
 fajnie by bylo by co ruch odswiezalo sie karty i czyscilo poprzednie
+
+
+```bash
+$ cd C:\Users\robiz\OneDrive\Dokumenty\GitHub\Dziennik\pasjans\
+$ .venv\Scripts\activate
+```
