@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 
 
 class AbstractCardRenderer(ABC):
+
     @abstractmethod
     def render_card(self, card):
         pass

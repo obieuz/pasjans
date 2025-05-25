@@ -1,37 +1,54 @@
 from core.Card import Card
+from core.Deck import Deck
+from core.TableauPile import TableauPile
+from gui.Drawer import Drawer
 from gui.GraphicCardRenderer import GraphicCardRenderer
 from gui.TextCardRenderer import TextCardRenderer
 import curses
 
+
 class GameManager:
     def __init__(self):
-        self.CardRenderer = GraphicCardRenderer()
+        self.drawer = None
+        self.tableau_piles = None
+        self.CardRenderer = None
+        self.deck = None
 
     def start_game(self):
+        self.deck = Deck()
+        self.deck.shuffle()
+        self.CardRenderer = TextCardRenderer()
+        self.tableau_piles = []
+
+        self.prepare_board()
+
         curses.wrapper(self.run_game)
 
+    def run_game(self, screen):
+        self.drawer = Drawer(self.CardRenderer, screen, graphic_mode="default")
+        screen.clear()
+
         # card = Card(suit_symbol="♠", rank="10")
-        # print(self.CardRenderer.render_card(card))
-    def run_game(self, stdscr):
-        stdscr.clear()
+        #
+        # card1 = Card(suit_symbol="♥", rank="A")
+        #
+        # self.drawer.draw_card(card, 0, 0)
+        #
+        # self.drawer.draw_tableau_pile(self.tableau_piles[3], 5, 0, is_selected=False)
+        self.drawer.draw_tableau_piles(self.tableau_piles)
 
-        curses.start_color()
-        curses.init_pair(1, curses.COLOR_RED, curses.COLOR_BLACK)
-        curses.init_pair(2, curses.COLOR_GREEN, curses.COLOR_BLACK)
+        screen.refresh()
 
-        # Set up the window
-        stdscr.addstr(0, 0, "Welcome to the Game!", curses.color_pair(2))
-        stdscr.addstr(1, 0, "Press any key to exit...", curses.color_pair(1))
+        screen.getch()
 
-        # Refresh the screen to show changes
-        stdscr.refresh()
-
-        # Create a card
-        card = Card(suit_symbol="♠", rank="10")
-        # Render the card using the TextCardRenderer
-        card_rendered = self.CardRenderer.render_card(card)
-        # Display the rendered card
-        stdscr.addstr(3, 0, card_rendered, curses.color_pair(1))
-
-        # Wait for user input
-        stdscr.getch()
+    def prepare_board(self):
+        for i in range(7):
+            tableau_pile = TableauPile()
+            cards = []
+            for j in range(i + 1):
+                card = self.deck.deal_card()
+                if card:
+                    cards.append(card)
+            tableau_pile.add_initial_cards(cards)
+            self.tableau_piles.append(tableau_pile)
+        self.tableau_piles.reverse()
