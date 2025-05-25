@@ -43,3 +43,5 @@ fajnie by bylo by co ruch odswiezalo sie karty i czyscilo poprzednie
 $ cd C:\Users\robiz\OneDrive\Dokumenty\GitHub\Dziennik\pasjans\
 $ .venv\Scripts\activate
 ```
+
+dodac tryby kolorw, klasyczny czerwony bialy i inne theme, moze customy
