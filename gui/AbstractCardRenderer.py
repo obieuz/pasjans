@@ -14,3 +14,7 @@ class AbstractCardRenderer(ABC):
     @abstractmethod
     def render_card_column(self, cards):
         pass
+
+    @abstractmethod
+    def render_blank_card(self, suit_symbol):
+        pass

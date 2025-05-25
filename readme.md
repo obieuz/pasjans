@@ -45,3 +45,8 @@ $ .venv\Scripts\activate
 ```
 
 dodac tryby kolorw, klasyczny czerwony bialy i inne theme, moze customy
+
+
+### Tryby gry
+
+Graficzby - wymagania cmd min wysokosc 50, szerokosc 100

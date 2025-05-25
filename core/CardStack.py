@@ -3,10 +3,13 @@ class CardStack:
         self.cards = cards if cards is not None else []
 
     def add_card(self, card):
-        self.cards.append(card)
+        if self.can_accept_card(card):
+            self.cards.append(card)
 
     def add_cards(self, cards):
-        self.cards.extend(cards)
+        first_card = cards[0] if cards else None
+        if first_card and self.can_accept_card(first_card):
+            self.cards.extend(cards)
 
     def remove_top_card(self):
         if not self.is_empty():
@@ -19,6 +22,18 @@ class CardStack:
         removed_cards = self.cards[beginning_index:]
         self.cards = self.cards[:beginning_index]
         return removed_cards
+
+    def can_accept_card(self, card):
+        if self.is_empty():
+            if card.rank == "K":
+                return True
+        last_card = self.peek_top_card()
+        if last_card.suit == card.suit:
+            return False
+        if last_card.rank_id - card.rank_id == 1:
+            return True
+
+
 
     def peek_top_card(self):
         if not self.is_empty():

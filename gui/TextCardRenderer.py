@@ -19,3 +19,6 @@ class TextCardRenderer(AbstractCardRenderer):
         for card in cards:
             card_column += self.render_card(card) + "\n"
         return card_column
+
+    def render_blank_card(self, suit_symbol):
+        return f"[ ? {suit_symbol} ]"

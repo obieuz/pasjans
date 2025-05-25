@@ -1,5 +1,6 @@
 from core.Card import Card
 from core.Deck import Deck
+from core.FoundationPile import FoundationPile
 from core.TableauPile import TableauPile
 from gui.Drawer import Drawer
 from gui.GraphicCardRenderer import GraphicCardRenderer
@@ -9,16 +10,20 @@ import curses
 
 class GameManager:
     def __init__(self):
+        self.foundation_piles = None
         self.drawer = None
         self.tableau_piles = None
         self.CardRenderer = None
         self.deck = None
+        self.width = 200
+        self.height = 100
 
     def start_game(self):
         self.deck = Deck()
         self.deck.shuffle()
-        self.CardRenderer = TextCardRenderer()
+        self.CardRenderer = GraphicCardRenderer()
         self.tableau_piles = []
+        self.foundation_piles = []
 
         self.prepare_board()
 
@@ -28,14 +33,17 @@ class GameManager:
         self.drawer = Drawer(self.CardRenderer, screen, graphic_mode="default")
         screen.clear()
 
-        # card = Card(suit_symbol="♠", rank="10")
-        #
+        self.drawer.draw_foundation_piles(self.foundation_piles)
+
+        self.drawer.draw_tableau_piles(self.tableau_piles)
+
         # card1 = Card(suit_symbol="♥", rank="A")
         #
         # self.drawer.draw_card(card, 0, 0)
         #
         # self.drawer.draw_tableau_pile(self.tableau_piles[3], 5, 0, is_selected=False)
-        self.drawer.draw_tableau_piles(self.tableau_piles)
+
+
 
         screen.refresh()
 
@@ -51,4 +59,7 @@ class GameManager:
                     cards.append(card)
             tableau_pile.add_initial_cards(cards)
             self.tableau_piles.append(tableau_pile)
-        self.tableau_piles.reverse()
+
+        for suit in ["♠", "♥", "♦", "♣"]:
+            foundation_pile = FoundationPile(required_suit=suit)
+            self.foundation_piles.append(foundation_pile)
