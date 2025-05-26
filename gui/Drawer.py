@@ -101,6 +101,9 @@ class Drawer:
                                    self.row_gap)
 
     def draw_foundation_pile(self, foundation_pile, x=0, y=0):
+        if foundation_pile.is_selected:
+            self.draw_border_around_object(x, y, self.card_width + 2, self.card_height + 2)
+
         if foundation_pile.is_empty():
             self.draw_blank_card(foundation_pile.suit_symbol, x, y)
             return
@@ -122,8 +125,12 @@ class Drawer:
         for i, line in enumerate(lines):
             self.screen.addstr(y + i, x, line, curses.color_pair(self.foreground_color))
 
-    def draw_stock_pile(self, stock_pile, x=0, y=0):
+    def draw_stock_pile(self, stock_pile, x=1, y=0):
         y = self.row_gap
+
+        if stock_pile.is_selected:
+            self.draw_border_around_object(x, y, self.card_width + 2, self.card_height + 2)
+
         if stock_pile.is_empty():
             self.draw_blank_card("?", x, y)
         else:
@@ -133,11 +140,13 @@ class Drawer:
         if len(stock_pile.visible_cards) == 0:
             return
 
+        card_gap = self.column_gap
+
         for i, card in enumerate(stock_pile.visible_cards):
             if i == len(stock_pile.visible_cards) - 1:
-                self.draw_card(card, x, y + self.card_height + i * self.card_hidden_height, True)
+                self.draw_card(card, x, y + card_gap + self.card_height + i * self.card_hidden_height, True)
                 continue
-            self.draw_card(card, x, y + self.card_height + i * self.card_hidden_height, False)
+            self.draw_card(card, x, y + card_gap + self.card_height + i * self.card_hidden_height, False)
 
     def draw_border_around_object(self, x, y, width, height):
         x = x - 1
