@@ -1,6 +1,7 @@
 class CardStack:
     def __init__(self, cards=None):
         self.cards = cards if cards is not None else []
+        self.is_selected = False
 
     def add_card(self, card):
         if self.can_accept_card(card):

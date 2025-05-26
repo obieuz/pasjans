@@ -20,6 +20,9 @@ class Card:
         self.rank = rank
         self.rank_id = ranks[rank]
         self.is_face_up = False
+        self.is_selected = False
+        self.top_left = (None, None)
+        self.bottom_right = (None, None)
 
         if suit_symbol not in ["♠", "♣", "♦", "♥"]:
             raise ValueError("Zły symbol. Użyj ♠, ♣, ♦, albo ♥.")

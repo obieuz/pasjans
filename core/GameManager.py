@@ -1,12 +1,17 @@
 from core.Card import Card
 from core.Deck import Deck
 from core.FoundationPile import FoundationPile
+from core.KeyboardInputHandler import KeyboardInputHandler
 from core.StockPile import StockPile
 from core.TableauPile import TableauPile
 from gui.Drawer import Drawer
 from gui.GraphicCardRenderer import GraphicCardRenderer
 from gui.TextCardRenderer import TextCardRenderer
 import curses
+
+
+class KeyBoardInputHandler:
+    pass
 
 
 class GameManager:
@@ -18,6 +23,13 @@ class GameManager:
         self.stock_pile = None
         self.deck = None
         self.difficulty = "easy"
+        self.input_handler = None
+        self.run = True
+        self.move_order_index = 0
+        self.move_order = ["stack_pile"] + ["tableau_pile-" + str(i) for i in range(0, 7)] + ["foundation_pile-0",
+                                                                                              "foundation_pile-1",
+                                                                                              "foundation_pile-2",
+                                                                                              "foundation_pile-3"]
 
     def start_game(self):
         self.deck = Deck()
@@ -32,37 +44,49 @@ class GameManager:
 
     def run_game(self, screen):
         self.drawer = Drawer(self.CardRenderer, screen, graphic_mode="default")
-        screen.clear()
-
-        self.drawer.draw_foundation_piles(self.foundation_piles)
-
-        self.drawer.draw_tableau_piles(self.tableau_piles)
+        self.input_handler = KeyboardInputHandler(self.drawer)
+        # screen.clear()
+        #
+        # self.drawer.draw_foundation_piles(self.foundation_piles)
+        #
+        # self.drawer.draw_tableau_piles(self.tableau_piles)
 
         card = Card(suit_symbol="♥", rank="A")
         card1 = Card(suit_symbol="♣", rank="K")
         card.flip()
         card1.flip()
 
-        cards = [card,card1]
+        cards = [card, card1]
 
         self.stock_pile.visible_cards = cards
 
-        for card in self.stock_pile.visible_cards:
-            print(card)
-
-        self.drawer.draw_stock_pile(self.stock_pile)
+        # for card in self.stock_pile.visible_cards:
+        #     print(card)
+        #
+        # self.drawer.draw_stock_pile(self.stock_pile)
 
         # card1 = Card(suit_symbol="♥", rank="A")
         #
         # self.drawer.draw_card(card, 0, 0)
         #
         # self.drawer.draw_tableau_pile(self.tableau_piles[3], 5, 0, is_selected=False)
+        self.tableau_piles[0].is_selected = True
 
+        while self.run:
 
+            screen.clear()
 
-        screen.refresh()
+            self.drawer.draw_foundation_piles(self.foundation_piles)
 
-        screen.getch()
+            self.drawer.draw_tableau_piles(self.tableau_piles)
+
+            self.drawer.draw_stock_pile(self.stock_pile)
+
+            screen.refresh()
+
+            action = self.input_handler.get_player_action()
+            if action:
+                self.process_action(action)
 
     def prepare_board(self):
         for i in range(7):
@@ -79,6 +103,39 @@ class GameManager:
             foundation_pile = FoundationPile(required_suit=suit)
             self.foundation_piles.append(foundation_pile)
 
-        self.stock_pile = StockPile(self.deck.cards,self.difficulty)
+        self.stock_pile = StockPile(self.deck.cards, self.difficulty)
 
+    def process_action(self, action):
+        if action == "quit":
+            self.run = False
+        elif action == "help":
+            self.drawer.show_help()
+        elif action == "restart":
+            self.start_game()
+        elif action == "move_right":
+            self.move_order_index = (self.move_order_index + 1) % len(self.move_order)
+            self.process_move()
+        elif action == "move_left":
+            self.move_order_index = (self.move_order_index - 1) % len(self.move_order)
+            self.process_move()
+        elif action == "use":
+            pass
 
+    def process_move(self):
+        self.clear_selection()
+        move_order_item = self.move_order[self.move_order_index].split("-")
+        if move_order_item[0] == "tableau_pile":
+            self.tableau_piles[int(move_order_item[1])].is_selected = True
+
+        elif move_order_item[0] == "foundation_pile":
+            self.foundation_piles[int(move_order_item[1])].is_selected = True
+
+        elif move_order_item[0] == "stack_pile":
+            self.stock_pile.is_selected = True
+
+    def clear_selection(self):
+        for tableau_pile in self.tableau_piles:
+            tableau_pile.is_selected = False
+        for foundation_pile in self.foundation_piles:
+            foundation_pile.is_selected = False
+        self.stock_pile.is_selected = False

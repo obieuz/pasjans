@@ -2,6 +2,7 @@ class TableauPile:
     def __init__(self):
         self.hidden_cards = []
         self.visible_cards = []
+        self.is_selected = False
 
     def add_initial_cards(self, cards):
         if not cards:

@@ -11,7 +11,7 @@ class KeyboardInputHandler(InputHandler, ABC):
         self.selected_pile_index = 0
         self.selected_card_in_tableau_index = None
 
-    def get_player_action(self, game_state):
+    def get_player_action(self):
         key = self.drawer.screen.getch()
         if key == ord('q'):
             return "quit"
@@ -31,5 +31,7 @@ class KeyboardInputHandler(InputHandler, ABC):
             return "move_left"
         elif key == curses.KEY_RIGHT:
             return "move_right"
+        elif key == curses.KEY_ENTER or key == 10 or key == 13:
+            return "use"
         else:
             return None
