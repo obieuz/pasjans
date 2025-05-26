@@ -89,11 +89,12 @@ class Drawer:
             self.draw_card(card, x, y + i * self.card_hidden_height, is_selected)
 
     def draw_tableau_piles(self, tableau_piles, is_selected_index=None):
+        stock_pile_width = self.card_width + self.column_gap
         is_selected = False
         for i, tableau_pile in enumerate(tableau_piles):
             if i == is_selected_index:
                 is_selected = True
-            self.draw_tableau_pile(tableau_pile, 0 + i * (self.card_width + self.column_gap), self.row_gap, is_selected)
+            self.draw_tableau_pile(tableau_pile, stock_pile_width + i * (self.card_width + self.column_gap), self.row_gap, is_selected)
 
     def draw_foundation_pile(self, foundation_pile, x=0, y=0, is_selected=False):
         if foundation_pile.is_empty():
@@ -103,7 +104,7 @@ class Drawer:
         self.draw_card(card, x, y, is_first=True, is_selected=is_selected)
 
     def draw_foundation_piles(self, foundation_piles, is_selected_index=None):
-        starting_x = 7 * (self.card_width + self.column_gap)
+        starting_x = 7 * (self.card_width + self.column_gap) + self.card_width + self.column_gap
         is_selected = False
         for i, foundation_pile in enumerate(foundation_piles):
             if i == is_selected_index:
@@ -119,3 +120,23 @@ class Drawer:
 
         for i, line in enumerate(lines):
             self.screen.addstr(y + i, x, line, curses.color_pair(self.foreground_color))
+
+    def draw_stock_pile(self, stock_pile, x=0,y=0):
+        y = self.row_gap
+        if stock_pile.is_empty():
+            self.draw_blank_card("?", x, y)
+        else:
+            card = stock_pile.hidden_cards[-1]
+            self.draw_card(card, x, y,True, is_selected=False)
+
+        if len(stock_pile.visible_cards) == 0:
+            return
+
+        for i, card in enumerate(stock_pile.visible_cards):
+            if i == len(stock_pile.visible_cards) - 1:
+                self.draw_card(card, x, y + self.card_height + i * self.card_hidden_height, True, False)
+                continue
+            self.draw_card(card, x, y + self.card_height + i * self.card_hidden_height, False)
+
+
+

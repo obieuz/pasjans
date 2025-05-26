@@ -1,6 +1,7 @@
 from core.Card import Card
 from core.Deck import Deck
 from core.FoundationPile import FoundationPile
+from core.StockPile import StockPile
 from core.TableauPile import TableauPile
 from gui.Drawer import Drawer
 from gui.GraphicCardRenderer import GraphicCardRenderer
@@ -14,9 +15,9 @@ class GameManager:
         self.drawer = None
         self.tableau_piles = None
         self.CardRenderer = None
+        self.stock_pile = None
         self.deck = None
-        self.width = 200
-        self.height = 100
+        self.difficulty = "easy"
 
     def start_game(self):
         self.deck = Deck()
@@ -36,6 +37,20 @@ class GameManager:
         self.drawer.draw_foundation_piles(self.foundation_piles)
 
         self.drawer.draw_tableau_piles(self.tableau_piles)
+
+        card = Card(suit_symbol="♥", rank="A")
+        card1 = Card(suit_symbol="♣", rank="K")
+        card.flip()
+        card1.flip()
+
+        cards = [card,card1]
+
+        self.stock_pile.visible_cards = cards
+
+        for card in self.stock_pile.visible_cards:
+            print(card)
+
+        self.drawer.draw_stock_pile(self.stock_pile)
 
         # card1 = Card(suit_symbol="♥", rank="A")
         #
@@ -63,3 +78,7 @@ class GameManager:
         for suit in ["♠", "♥", "♦", "♣"]:
             foundation_pile = FoundationPile(required_suit=suit)
             self.foundation_piles.append(foundation_pile)
+
+        self.stock_pile = StockPile(self.deck.cards,self.difficulty)
+
+
