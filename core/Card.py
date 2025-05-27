@@ -23,6 +23,7 @@ class Card:
         self.is_selected = False
         self.top_left = (None, None)
         self.bottom_right = (None, None)
+        self.in_selection = False
 
         if suit_symbol not in ["♠", "♣", "♦", "♥"]:
             raise ValueError("Zły symbol. Użyj ♠, ♣, ♦, albo ♥.")

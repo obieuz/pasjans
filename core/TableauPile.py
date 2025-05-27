@@ -16,6 +16,11 @@ class TableauPile:
         visible_card.flip()
         self.visible_cards = [visible_card]
 
+    def add_cards(self,cards):
+        if not cards:
+            return
+        self.visible_cards.extend(cards)
+
     def can_place_card(self, card):
         if not self.visible_cards:
             if card.rank == "K":

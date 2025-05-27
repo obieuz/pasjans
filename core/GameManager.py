@@ -3,6 +3,7 @@ from core.Deck import Deck
 from core.FoundationPile import FoundationPile
 from core.GameState import GameState
 from core.KeyboardInputHandler import KeyboardInputHandler
+from core.SelectedCardPile import SelectedCardPile
 from core.StockPile import StockPile
 from core.TableauPile import TableauPile
 from gui.Drawer import Drawer
@@ -22,6 +23,7 @@ class GameManager:
         self.tableau_piles = None
         self.CardRenderer = None
         self.stock_pile = None
+        self.selected_card_pile = SelectedCardPile()
         self.deck = None
         self.difficulty = "easy"
         self.input_handler = None
@@ -118,8 +120,6 @@ class GameManager:
             self.clear_vertical_selection()
             self.move_order_horizontal_index = (self.move_order_horizontal_index - 1) % len(self.move_order)
             self.process_horizontal_move()
-        elif action == "use":
-            pass
         elif action == "move_up":
             move_order_item = self.move_order[self.move_order_horizontal_index].split("-")
             if move_order_item[0] == "tableau_pile":
@@ -145,7 +145,45 @@ class GameManager:
                 if self.move_order_vertical_index < len(self.stock_pile.visible_cards) - 1:
                     self.move_order_vertical_index += 1
             self.process_vertical_move()
+        elif action == "use":
+            move_order_item = self.move_order[self.move_order_horizontal_index].split("-")
+            if self.selected_card_pile.is_empty():
+                if move_order_item[0] == "tableau_pile":
+                    horizontal_index = int(move_order_item[1])
+                    cards_to_add = self.tableau_piles[horizontal_index].visible_cards[:self.move_order_horizontal_index]
+                    for card in cards_to_add:
+                        card.in_selection = True
+                    self.selected_card_pile.add_cards(cards_to_add, self.move_order_horizontal_index, self.move_order_vertical_index)
+                if move_order_item[0] == "stack_pile":
+                    if self.move_order_vertical_index == 0:
+                        if self.stock_pile.is_empty():
+                            self.stock_pile.shuffle_deck()
+                        else:
+                            self.stock_pile.draw_card()
+                    else:
+                        card_to_add = self.stock_pile.visible_cards[self.move_order_vertical_index]
+                        card_to_add.in_selection = True
+                        self.selected_card_pile.add_cards(card_to_add, self.move_order_horizontal_index, self.move_order_vertical_index)
 
+            else:
+                if move_order_item[0] == "tableau_pile":
+                    horizontal_index = int(move_order_item[1])
+                    if self.tableau_piles[horizontal_index].can_place_card(self.selected_card_pile.cards[0]):
+                        self.tableau_piles[horizontal_index].add_cards(self.selected_card_pile.cards)
+                        self.selected_card_pile.cards = []
+                elif move_order_item[0] == "foundation_pile":
+                    if len(self.selected_card_pile.cards) != 0:
+                        return
+                    if self.foundation_piles[self.move_order_vertical_index].can_accept_card(self.selected_card_pile.cards[0]):
+                        self.foundation_piles[self.move_order_vertical_index].add_cards(self.selected_card_pile.cards)
+                        self.selected_card_pile.cards = []
+                elif move_order_item[0] == "stack_pile":
+                    if self.move_order_vertical_index != 0:
+                        return
+                    if self.stock_pile.is_empty():
+                        self.stock_pile.shuffle_deck()
+                    else:
+                        self.stock_pile.draw_card()
 
         if action != "load":
             self.game_state_saver.push_state(
