@@ -58,7 +58,7 @@ class GameManager:
         card.flip()
         card1.flip()
 
-        cards = [card, card1]
+        cards = [card]
 
         self.stock_pile.visible_cards = cards
 
@@ -142,11 +142,12 @@ class GameManager:
                 if self.move_order_vertical_index < len(self.foundation_piles) - 1:
                     self.move_order_vertical_index += 1
             elif move_order_item[0] == "stack_pile":
-                if self.move_order_vertical_index < len(self.stock_pile.visible_cards) - 1:
+                if self.move_order_vertical_index <= len(self.stock_pile.visible_cards):
                     self.move_order_vertical_index += 1
             self.process_vertical_move()
         elif action == "use":
             move_order_item = self.move_order[self.move_order_horizontal_index].split("-")
+            print(self.move_order_vertical_index)
             if self.selected_card_pile.is_empty():
                 if move_order_item[0] == "tableau_pile":
                     horizontal_index = int(move_order_item[1])
@@ -161,7 +162,8 @@ class GameManager:
                         else:
                             self.stock_pile.draw_card()
                     else:
-                        card_to_add = self.stock_pile.visible_cards[self.move_order_vertical_index]
+                        print("dodajemy karte z stosu stock")
+                        card_to_add = self.stock_pile.visible_cards[self.move_order_vertical_index-1]
                         card_to_add.in_selection = True
                         self.selected_card_pile.add_cards(card_to_add, self.move_order_horizontal_index, self.move_order_vertical_index)
 
@@ -172,7 +174,8 @@ class GameManager:
                         self.tableau_piles[horizontal_index].add_cards(self.selected_card_pile.cards)
                         self.selected_card_pile.cards = []
                 elif move_order_item[0] == "foundation_pile":
-                    if len(self.selected_card_pile.cards) != 0:
+                    if len(self.selected_card_pile.cards) == 0:
+                        print("Nie ma kart")
                         return
                     if self.foundation_piles[self.move_order_vertical_index].can_accept_card(self.selected_card_pile.cards[0]):
                         self.foundation_piles[self.move_order_vertical_index].add_cards(self.selected_card_pile.cards)
@@ -223,7 +226,7 @@ class GameManager:
 
         elif move_order_item[0] == "stack_pile":
             if self.stock_pile.visible_cards:
-                self.stock_pile.visible_cards[self.move_order_vertical_index].is_selected = True
+                self.stock_pile.visible_cards[self.move_order_vertical_index-1].is_selected = True
 
     def clear_horizontal_selection(self):
         for tableau_pile in self.tableau_piles:
