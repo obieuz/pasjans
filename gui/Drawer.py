@@ -41,6 +41,19 @@ class Drawer:
 
         self.card_renderer = card_renderer
 
+
+    def draw_game_board(self, stock_pile, tableau_piles, foundation_piles):
+        self.screen.clear()
+        self.screen.refresh()
+
+        self.draw_stock_pile(stock_pile)
+
+        self.draw_tableau_piles(tableau_piles)
+
+        self.draw_foundation_piles(foundation_piles)
+
+        self.screen.refresh()
+
     def draw_card(self, card, x=0, y=0, is_first=False, color=None):
         if not card:
             return None

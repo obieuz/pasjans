@@ -1,6 +1,7 @@
 from core.Card import Card
 from core.Deck import Deck
 from core.FoundationPile import FoundationPile
+from core.GameState import GameState
 from core.KeyboardInputHandler import KeyboardInputHandler
 from core.StockPile import StockPile
 from core.TableauPile import TableauPile
@@ -25,6 +26,7 @@ class GameManager:
         self.difficulty = "easy"
         self.input_handler = None
         self.run = True
+        self.game_state_saver = GameState()
         self.move_order_horizontal_index = 0
         self.move_order_vertical_index = 0
         self.move_order = ["stack_pile-0"] + ["tableau_pile-" + str(i) for i in range(0, 7)] + ["foundation_pile-0"]
@@ -71,19 +73,16 @@ class GameManager:
 
         while self.run:
 
-            screen.clear()
-
-            self.drawer.draw_foundation_piles(self.foundation_piles)
-
-            self.drawer.draw_tableau_piles(self.tableau_piles)
-
-            self.drawer.draw_stock_pile(self.stock_pile)
-
-            screen.refresh()
+            self.drawer.draw_game_board(
+                self.stock_pile,
+                self.tableau_piles,
+                self.foundation_piles
+            )
 
             action = self.input_handler.get_player_action()
             if action:
                 self.process_action(action)
+
 
     def prepare_board(self):
         for i in range(7):
@@ -107,6 +106,8 @@ class GameManager:
             self.run = False
         elif action == "help":
             self.drawer.show_help()
+        elif action == "load":
+            self.go_back()
         elif action == "restart":
             self.start_game()
         elif action == "move_right":
@@ -134,9 +135,8 @@ class GameManager:
         elif action == "move_down":
             move_order_item = self.move_order[self.move_order_horizontal_index].split("-")
             if move_order_item[0] == "tableau_pile":
-                print(self.tableau_piles[6])
-                print(self.move_order_horizontal_index)
-                if self.move_order_vertical_index < len(self.tableau_piles[self.move_order_horizontal_index-1].visible_cards) - 1:
+                if self.move_order_vertical_index < len(
+                        self.tableau_piles[self.move_order_horizontal_index - 1].visible_cards) - 1:
                     self.move_order_vertical_index += 1
             elif move_order_item[0] == "foundation_pile":
                 if self.move_order_vertical_index < len(self.foundation_piles) - 1:
@@ -145,6 +145,17 @@ class GameManager:
                 if self.move_order_vertical_index < len(self.stock_pile.visible_cards) - 1:
                     self.move_order_vertical_index += 1
             self.process_vertical_move()
+
+
+        if action != "load":
+            self.game_state_saver.push_state(
+                self.stock_pile,
+                self.tableau_piles,
+                self.foundation_piles,
+                self.move_order,
+                self.move_order_horizontal_index,
+                self.move_order_vertical_index
+            )
 
     def process_horizontal_move(self):
         self.clear_horizontal_selection()
@@ -195,3 +206,24 @@ class GameManager:
         elif move_order_item[0] == "stack_pile":
             for card in self.stock_pile.visible_cards:
                 card.is_selected = False
+
+    def go_back(self):
+        state = self.game_state_saver.load_state()
+        if state:
+            self.stock_pile = state["stock_pile"]
+            self.tableau_piles = state["tableau_piles"]
+            self.foundation_piles = state["foundation_piles"]
+            self.move_order = state["move_order"]
+            self.move_order_horizontal_index = state["move_order_horizontal_index"]
+            self.move_order_vertical_index = state["move_order_vertical_index"]
+
+            self.process_horizontal_move()
+
+            self.drawer.draw_game_board(
+                self.stock_pile,
+                self.tableau_piles,
+                self.foundation_piles
+            )
+
+        else:
+            print("Nie ma stanu do załadowania.")
