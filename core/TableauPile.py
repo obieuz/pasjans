@@ -22,9 +22,11 @@ class TableauPile:
         self.visible_cards.extend(cards)
 
     def can_place_card(self, card):
-        if not self.visible_cards:
+        if len(self.visible_cards) == 0:
             if card.rank == "K":
                 return True
+            else:
+                return False
         last_card = self.visible_cards[-1]
         if last_card.rank_id - card.rank_id == 1 and last_card.color != card.color:
             return True
@@ -56,13 +58,13 @@ class TableauPile:
         print(f"Total Visible Cards: {len(self.visible_cards)}")
         print(f"Total Hidden Cards: {len(self.hidden_cards)}")
 
-    def remove_cards_to_index(self, index):
+    def remove_cards_to_index(self, index,cards_to_delete):
         if index < 0 or index >= len(self.visible_cards):
             print("Index out of range.")
             return None
 
         print(index)
-        print(self.visible_cards[index+1:])
+        print(self.visible_cards[index+cards_to_delete:])
 
-        self.visible_cards = self.visible_cards[index+1:]
+        self.visible_cards = self.visible_cards[index+cards_to_delete:]
         self.flip_after_deleting()

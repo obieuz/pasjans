@@ -128,7 +128,10 @@ class GameManager:
             elif move_order_item[0] == "foundation_pile":
                 if self.move_order_vertical_index > 0:
                     self.move_order_vertical_index -= 1
+                else:
+                    self.move_order_vertical_index = len(self.foundation_piles) - 1
             elif move_order_item[0] == "stack_pile":
+                print(self.move_order_vertical_index)
                 if self.move_order_vertical_index > 0:
                     self.move_order_vertical_index -= 1
             self.process_vertical_move()
@@ -141,6 +144,8 @@ class GameManager:
             elif move_order_item[0] == "foundation_pile":
                 if self.move_order_vertical_index < len(self.foundation_piles) - 1:
                     self.move_order_vertical_index += 1
+                else:
+                    self.move_order_vertical_index = 0
             elif move_order_item[0] == "stack_pile":
                 if self.move_order_vertical_index <= len(self.stock_pile.visible_cards):
                     self.move_order_vertical_index += 1
@@ -152,7 +157,7 @@ class GameManager:
                 if move_order_item[0] == "tableau_pile":
                     horizontal_index = int(move_order_item[1])
 
-                    cards_to_add = self.tableau_piles[horizontal_index].visible_cards[:self.move_order_vertical_index]
+                    cards_to_add = self.tableau_piles[horizontal_index].visible_cards[self.move_order_vertical_index:]
                     for card in cards_to_add:
                         card.in_selection = True
                     self.selected_card_pile.add_cards(cards_to_add, self.move_order_horizontal_index, self.move_order_vertical_index)
@@ -241,7 +246,7 @@ class GameManager:
         move_order_item = self.move_order[self.selected_card_pile.selected_from_horizontal_index].split("-")
         if move_order_item[0] == "tableau_pile":
             pile = self.tableau_piles[int(move_order_item[1])]
-            pile.remove_cards_to_index(self.selected_card_pile.selected_from_vertical_index)
+            pile.remove_cards_to_index(self.selected_card_pile.selected_from_vertical_index,len(self.selected_card_pile.cards))
         elif move_order_item[0] == "stack_pile":
             print("Removing card from stock pile")
             self.stock_pile.pop_card()
