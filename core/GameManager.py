@@ -147,11 +147,12 @@ class GameManager:
             self.process_vertical_move()
         elif action == "use":
             move_order_item = self.move_order[self.move_order_horizontal_index].split("-")
-            print(self.move_order_vertical_index)
+            print(f"Vertical index - {self.move_order_vertical_index}")
             if self.selected_card_pile.is_empty():
                 if move_order_item[0] == "tableau_pile":
                     horizontal_index = int(move_order_item[1])
-                    cards_to_add = self.tableau_piles[horizontal_index].visible_cards[:self.move_order_horizontal_index]
+
+                    cards_to_add = self.tableau_piles[horizontal_index].visible_cards[:self.move_order_vertical_index]
                     for card in cards_to_add:
                         card.in_selection = True
                     self.selected_card_pile.add_cards(cards_to_add, self.move_order_horizontal_index, self.move_order_vertical_index)
@@ -163,23 +164,29 @@ class GameManager:
                             self.stock_pile.draw_card()
                     else:
                         print("dodajemy karte z stosu stock")
-                        card_to_add = self.stock_pile.visible_cards[self.move_order_vertical_index-1]
+                        card_to_add = self.stock_pile.visible_cards[-1]
+                        print(card_to_add)
                         card_to_add.in_selection = True
-                        self.selected_card_pile.add_cards(card_to_add, self.move_order_horizontal_index, self.move_order_vertical_index)
+                        self.selected_card_pile.add_cards([card_to_add], self.move_order_horizontal_index, self.move_order_vertical_index+1)
 
             else:
                 if move_order_item[0] == "tableau_pile":
                     horizontal_index = int(move_order_item[1])
                     if self.tableau_piles[horizontal_index].can_place_card(self.selected_card_pile.cards[0]):
+                        self.process_deleting_card()
                         self.tableau_piles[horizontal_index].add_cards(self.selected_card_pile.cards)
                         self.selected_card_pile.cards = []
+                    else:
+                        self.selected_card_pile.clean()
                 elif move_order_item[0] == "foundation_pile":
                     if len(self.selected_card_pile.cards) == 0:
-                        print("Nie ma kart")
                         return
                     if self.foundation_piles[self.move_order_vertical_index].can_accept_card(self.selected_card_pile.cards[0]):
+                        self.process_deleting_card()
                         self.foundation_piles[self.move_order_vertical_index].add_cards(self.selected_card_pile.cards)
                         self.selected_card_pile.cards = []
+                    else:
+                        self.selected_card_pile.clean()
                 elif move_order_item[0] == "stack_pile":
                     if self.move_order_vertical_index != 0:
                         return
@@ -226,7 +233,18 @@ class GameManager:
 
         elif move_order_item[0] == "stack_pile":
             if self.stock_pile.visible_cards:
-                self.stock_pile.visible_cards[self.move_order_vertical_index-1].is_selected = True
+                self.stock_pile.visible_cards[-1].is_selected = True
+
+    def process_deleting_card(self):
+        print(f"Horizontal - {self.selected_card_pile.selected_from_horizontal_index}")
+        print(f"Vertical - {self.selected_card_pile.selected_from_vertical_index}")
+        move_order_item = self.move_order[self.selected_card_pile.selected_from_horizontal_index].split("-")
+        if move_order_item[0] == "tableau_pile":
+            pile = self.tableau_piles[int(move_order_item[1])]
+            pile.remove_cards_to_index(self.selected_card_pile.selected_from_vertical_index)
+        elif move_order_item[0] == "stack_pile":
+            print("Removing card from stock pile")
+            self.stock_pile.pop_card()
 
     def clear_horizontal_selection(self):
         for tableau_pile in self.tableau_piles:

@@ -21,3 +21,8 @@ class SelectedCardPile:
     def is_empty(self):
         return len(self.cards) == 0
 
+    def clean(self):
+        self.cards.clear()
+        self.selected_from_horizontal_index = None
+        self.selected_from_vertical_index = None
+

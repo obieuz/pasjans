@@ -40,9 +40,29 @@ class TableauPile:
             return True
         return False
 
+    def flip_after_deleting(self):
+        if len(self.visible_cards) == 0:
+            if len(self.hidden_cards) == 0:
+                return
+            card = self.hidden_cards.pop()
+            card.flip()
+            self.visible_cards = [card]
+
+
     def debug(self):
         print("Tableau Pile Debug:")
         print(f"Visible Cards: {[str(card) for card in self.visible_cards]}")
         print(f"Hidden Cards: {[str(card) for card in self.hidden_cards]}")
         print(f"Total Visible Cards: {len(self.visible_cards)}")
         print(f"Total Hidden Cards: {len(self.hidden_cards)}")
+
+    def remove_cards_to_index(self, index):
+        if index < 0 or index >= len(self.visible_cards):
+            print("Index out of range.")
+            return None
+
+        print(index)
+        print(self.visible_cards[index+1:])
+
+        self.visible_cards = self.visible_cards[index+1:]
+        self.flip_after_deleting()

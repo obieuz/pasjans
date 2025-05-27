@@ -32,4 +32,9 @@ class StockPile(CardStack):
             card.flip()
         self.hidden_cards = self.shuffler.shuffle(self.hidden_cards)
 
+    def pop_card(self):
+        if self.is_empty():
+            return None
+        self.visible_cards.pop()
+
 
