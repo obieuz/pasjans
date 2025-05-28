@@ -10,6 +10,7 @@ from gui.Drawer import Drawer
 from gui.GraphicCardRenderer import GraphicCardRenderer
 from gui.TextCardRenderer import TextCardRenderer
 import curses
+import copy
 
 
 class KeyBoardInputHandler:
@@ -89,6 +90,20 @@ class GameManager:
         self.stock_pile = StockPile(self.deck.cards, self.difficulty)
 
     def process_action(self, action):
+
+        if self.game_state_saver.last_number_of_move != self.number_of_moves:
+            self.game_state_saver.push_state(
+                copy.deepcopy(self.stock_pile),
+                copy.deepcopy(self.tableau_piles),
+                copy.deepcopy(self.foundation_piles),
+                copy.deepcopy(self.selected_card_pile),
+                copy.deepcopy(self.move_order),
+                self.move_order_horizontal_index,
+                self.move_order_vertical_index,
+                self.number_of_moves,
+                copy.deepcopy(self.game_state_saver)
+                )
+
         if action == "quit":
             self.run = False
         elif action == "help":
@@ -183,15 +198,7 @@ class GameManager:
                     self.number_of_moves = self.number_of_moves + 1
                     self.stock_pile.draw_card()
 
-        if action != "load":
-            self.game_state_saver.push_state(
-                self.stock_pile,
-                self.tableau_piles,
-                self.foundation_piles,
-                self.move_order,
-                self.move_order_horizontal_index,
-                self.move_order_vertical_index
-            )
+
 
     def process_horizontal_move(self):
         self.clear_horizontal_selection()
@@ -264,20 +271,16 @@ class GameManager:
             self.stock_pile = state["stock_pile"]
             self.tableau_piles = state["tableau_piles"]
             self.foundation_piles = state["foundation_piles"]
+            self.selected_card_pile = state["selected_card_pile"]
             self.move_order = state["move_order"]
             self.move_order_horizontal_index = state["move_order_horizontal_index"]
             self.move_order_vertical_index = state["move_order_vertical_index"]
-
-            self.process_horizontal_move()
-
-            self.drawer.draw_game_board(
-                self.stock_pile,
-                self.tableau_piles,
-                self.foundation_piles
-            )
+            self.number_of_moves = state["number_of_moves"]
+            self.game_state_saver = state["game_state"]
 
         else:
             print("Nie ma stanu do załadowania.")
+
 
     def check_for_win(self):
         for foundation_pile in self.foundation_piles:
