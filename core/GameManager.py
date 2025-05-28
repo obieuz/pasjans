@@ -148,9 +148,8 @@ class GameManager:
                     if self.move_order_vertical_index == 0:
                         if self.stock_pile.is_empty():
                             self.stock_pile.shuffle_deck()
-                        else:
-                            self.number_of_moves = self.number_of_moves + 1
-                            self.stock_pile.draw_card()
+                        self.number_of_moves = self.number_of_moves + 1
+                        self.stock_pile.draw_card()
                     else:
                         card_to_add = self.stock_pile.visible_cards[-1]
                         card_to_add.in_selection = True
@@ -177,9 +176,8 @@ class GameManager:
                         return
                     if self.stock_pile.is_empty():
                         self.stock_pile.shuffle_deck()
-                    else:
-                        self.number_of_moves = self.number_of_moves + 1
-                        self.stock_pile.draw_card()
+                    self.number_of_moves = self.number_of_moves + 1
+                    self.stock_pile.draw_card()
 
         if action != "load":
             self.game_state_saver.push_state(
