@@ -188,3 +188,32 @@ class Drawer:
     def draw_number_of_moves(self, number_of_moves):
         moves_text = f"Liczba ruchów: {number_of_moves}"
         self.screen.addstr(0, 0, moves_text, curses.color_pair(self.secondary_color))
+
+    def show_win_message(self,number_of_moves,time):
+        self.screen.clear()
+        win_message = "Gratulacje! Wygrałeś grę!"
+        meta = f"Zajeło ci to {number_of_moves} posunięć."
+        time = f"Czas gry: {time} sekund"
+        play_again = f"Kliknij R aby zagrać ponownie"
+        lines = [win_message, meta, time,play_again]
+
+        for i, line in enumerate(lines):
+            self.screen.addstr(i*2, 10, line, curses.color_pair(self.foreground_color))
+
+        self.screen.refresh()
+
+
+    def show_loss_message(self,number_of_moves,time):
+        self.screen.clear()
+        loss_message = "Walczyłeś dzielnie, ale przegrałeś"
+        meta = f"Walczyłeś przez {number_of_moves} posunięć"
+        time = f"Zajeło ci to {time}"
+        play_again = f"Kliknij R aby zagrać ponownie"
+
+        lines = [loss_message, meta, time, play_again]
+
+        for i, line in enumerate(lines):
+            self.screen.addstr(i*10, 10, line, curses.color_pair(self.foreground_color))
+        self.screen.refresh()
+
+

@@ -1,4 +1,7 @@
+import os
+
 from core.Card import Card
+from rich.console import Console
 from core.Deck import Deck
 from core.FoundationPile import FoundationPile
 from core.GameState import GameState
@@ -7,10 +10,13 @@ from core.SelectedCardPile import SelectedCardPile
 from core.StockPile import StockPile
 from core.TableauPile import TableauPile
 from gui.Drawer import Drawer
+from gui.EndScreen import EndScreen
 from gui.GraphicCardRenderer import GraphicCardRenderer
+from gui.StartMenu import StartMenu
 from gui.TextCardRenderer import TextCardRenderer
 import curses
 import copy
+from core.LeaderboardManager import LeaderboardManager
 
 
 class KeyBoardInputHandler:
@@ -19,14 +25,16 @@ class KeyBoardInputHandler:
 
 class GameManager:
     def __init__(self):
+        self.game_settings = None
         self.foundation_piles = None
         self.drawer = None
+        self.console = Console()
         self.tableau_piles = None
         self.CardRenderer = None
         self.stock_pile = None
         self.selected_card_pile = SelectedCardPile()
         self.deck = None
-        self.difficulty = "easy"
+        self.difficulty = None
         self.input_handler = None
         self.run = True
         self.number_of_moves = 0
@@ -34,30 +42,45 @@ class GameManager:
         self.move_order_horizontal_index = 0
         self.move_order_vertical_index = 0
         self.move_order = ["stack_pile-0"] + ["tableau_pile-" + str(i) for i in range(0, 7)] + ["foundation_pile-0"]
+        self.is_won = False
+        self.time = None
+        self.leaderboard_manager_instance = LeaderboardManager()
 
     def start_game(self):
+
+        menu = StartMenu(self.console)
+        self.end_screen = end_screen = EndScreen(self.console,self.leaderboard_manager_instance)
+        self.game_settings = menu.display()
+        os.system("cls")
+        if not self.game_settings:
+            print("Gra anulowana.")
+            return
+        self.difficulty = self.game_settings["difficulty"]
+
+        self.run = True
         self.deck = Deck()
         self.deck.shuffle()
         self.CardRenderer = GraphicCardRenderer()
         self.tableau_piles = []
         self.foundation_piles = []
         self.number_of_moves = 0
+        self.is_won = False
+        self.time = 10
 
         self.prepare_board()
 
         curses.wrapper(self.run_game)
 
     def run_game(self, screen):
-        self.drawer = Drawer(self.CardRenderer, screen, graphic_mode="default")
+        self.drawer = Drawer(self.CardRenderer, screen, graphic_mode=self.game_settings["color_mode"])
         self.input_handler = KeyboardInputHandler(self.drawer)
 
         while self.run:
 
             if self.check_for_win():
-                print("You won")
                 self.run = False
+                self.is_won = True
             elif self.check_for_loss():
-                print("You lost")
                 self.run = False
 
             self.drawer.draw_game_board(
@@ -70,6 +93,10 @@ class GameManager:
             action = self.input_handler.get_player_action()
             if action:
                 self.process_action(action)
+
+        self.end_screen.display(self.is_won,self.game_settings["nickname"],self.number_of_moves,self.time)
+
+
 
 
     def prepare_board(self):
@@ -101,7 +128,7 @@ class GameManager:
                 self.move_order_horizontal_index,
                 self.move_order_vertical_index,
                 self.number_of_moves,
-                copy.deepcopy(self.game_state_saver)
+                self.game_state_saver
                 )
 
         if action == "quit":
@@ -276,15 +303,13 @@ class GameManager:
             self.move_order_horizontal_index = state["move_order_horizontal_index"]
             self.move_order_vertical_index = state["move_order_vertical_index"]
             self.number_of_moves = state["number_of_moves"]
-            self.game_state_saver = state["game_state"]
-
         else:
             print("Nie ma stanu do załadowania.")
 
 
     def check_for_win(self):
         for foundation_pile in self.foundation_piles:
-            if len(foundation_pile.cards) != 13:
+            if len(foundation_pile.cards) != 0:
                 return False
         return True
 
