@@ -28,6 +28,7 @@ class GameManager:
         self.difficulty = "easy"
         self.input_handler = None
         self.run = True
+        self.number_of_moves = 0
         self.game_state_saver = GameState()
         self.move_order_horizontal_index = 0
         self.move_order_vertical_index = 0
@@ -39,6 +40,7 @@ class GameManager:
         self.CardRenderer = GraphicCardRenderer()
         self.tableau_piles = []
         self.foundation_piles = []
+        self.number_of_moves = 0
 
         self.prepare_board()
 
@@ -50,10 +52,18 @@ class GameManager:
 
         while self.run:
 
+            if self.check_for_win():
+                print("You won")
+                self.run = False
+            elif self.check_for_loss():
+                print("You lost")
+                self.run = False
+
             self.drawer.draw_game_board(
                 self.stock_pile,
                 self.tableau_piles,
-                self.foundation_piles
+                self.foundation_piles,
+                self.number_of_moves
             )
 
             action = self.input_handler.get_player_action()
@@ -139,10 +149,10 @@ class GameManager:
                         if self.stock_pile.is_empty():
                             self.stock_pile.shuffle_deck()
                         else:
+                            self.number_of_moves = self.number_of_moves + 1
                             self.stock_pile.draw_card()
                     else:
                         card_to_add = self.stock_pile.visible_cards[-1]
-                        print(card_to_add)
                         card_to_add.in_selection = True
                         self.selected_card_pile.add_cards([card_to_add], self.move_order_horizontal_index, self.move_order_vertical_index+1)
 
@@ -150,26 +160,25 @@ class GameManager:
                 if move_order_item[0] == "tableau_pile":
                     horizontal_index = int(move_order_item[1])
                     if self.tableau_piles[horizontal_index].can_place_card(self.selected_card_pile.cards[0]):
+                        self.number_of_moves =+ self.number_of_moves + 1
                         self.process_deleting_card()
                         self.tableau_piles[horizontal_index].add_cards(self.selected_card_pile.cards)
-                        self.selected_card_pile.cards = []
-                    else:
-                        self.selected_card_pile.clean()
+                    self.clear_selection()
                 elif move_order_item[0] == "foundation_pile":
                     if len(self.selected_card_pile.cards) == 0:
                         return
                     if self.foundation_piles[self.move_order_vertical_index].can_accept_card(self.selected_card_pile.cards[0]):
+                        self.number_of_moves = self.number_of_moves +1
                         self.process_deleting_card()
                         self.foundation_piles[self.move_order_vertical_index].add_cards(self.selected_card_pile.cards)
-                        self.selected_card_pile.cards = []
-                    else:
-                        self.selected_card_pile.clean()
+                    self.clear_selection()
                 elif move_order_item[0] == "stack_pile":
                     if self.move_order_vertical_index != 0:
                         return
                     if self.stock_pile.is_empty():
                         self.stock_pile.shuffle_deck()
                     else:
+                        self.number_of_moves = self.number_of_moves + 1
                         self.stock_pile.draw_card()
 
         if action != "load":
@@ -213,15 +222,19 @@ class GameManager:
                 self.stock_pile.visible_cards[-1].is_selected = True
 
     def process_deleting_card(self):
-        print(f"Horizontal - {self.selected_card_pile.selected_from_horizontal_index}")
-        print(f"Vertical - {self.selected_card_pile.selected_from_vertical_index}")
         move_order_item = self.move_order[self.selected_card_pile.selected_from_horizontal_index].split("-")
         if move_order_item[0] == "tableau_pile":
             pile = self.tableau_piles[int(move_order_item[1])]
             pile.remove_cards_to_index(self.selected_card_pile.selected_from_vertical_index,len(self.selected_card_pile.cards))
         elif move_order_item[0] == "stack_pile":
-            print("Removing card from stock pile")
             self.stock_pile.pop_card()
+        for card in self.selected_card_pile.cards:
+            card.in_selection = False
+
+    def clear_selection(self):
+        for card in self.selected_card_pile.cards:
+            card.in_selection = False
+        self.selected_card_pile.clean()
 
     def clear_horizontal_selection(self):
         for tableau_pile in self.tableau_piles:
@@ -263,3 +276,17 @@ class GameManager:
 
         else:
             print("Nie ma stanu do załadowania.")
+
+    def check_for_win(self):
+        for foundation_pile in self.foundation_piles:
+            if len(foundation_pile.cards) != 13:
+                return False
+        return True
+
+    def check_for_loss(self):
+        if not self.stock_pile.is_empty():
+            return False
+        for tableau_pile in self.tableau_piles:
+            if tableau_pile.visible_cards:
+                return False
+        return True

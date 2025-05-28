@@ -43,7 +43,7 @@ class Drawer:
         self.card_renderer = card_renderer
 
 
-    def draw_game_board(self, stock_pile, tableau_piles, foundation_piles):
+    def draw_game_board(self, stock_pile, tableau_piles, foundation_piles, number_of_moves):
         self.screen.clear()
         self.screen.refresh()
 
@@ -52,6 +52,8 @@ class Drawer:
         self.draw_tableau_piles(tableau_piles)
 
         self.draw_foundation_piles(foundation_piles)
+
+        self.draw_number_of_moves(number_of_moves)
 
         self.screen.refresh()
 
@@ -76,7 +78,7 @@ class Drawer:
             if not card.is_face_up:
                 color = self.foreground_color
 
-            elif card.is_selected:
+            elif card.is_selected or card.in_selection:
                 color = self.selected_color
 
             elif card.color == "red":
@@ -182,3 +184,7 @@ class Drawer:
         for i in range(1, height - 1):
             self.screen.addch(y + i, x, curses.ACS_VLINE)
             self.screen.addch(y + i, x + width - 1, curses.ACS_VLINE)
+
+    def draw_number_of_moves(self, number_of_moves):
+        moves_text = f"Liczba ruchów: {number_of_moves}"
+        self.screen.addstr(0, 0, moves_text, curses.color_pair(self.secondary_color))
