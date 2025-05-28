@@ -47,31 +47,6 @@ class GameManager:
     def run_game(self, screen):
         self.drawer = Drawer(self.CardRenderer, screen, graphic_mode="default")
         self.input_handler = KeyboardInputHandler(self.drawer)
-        # screen.clear()
-        #
-        # self.drawer.draw_foundation_piles(self.foundation_piles)
-        #
-        # self.drawer.draw_tableau_piles(self.tableau_piles)
-
-        card = Card(suit_symbol="♥", rank="A")
-        card1 = Card(suit_symbol="♣", rank="K")
-        card.flip()
-        card1.flip()
-
-        cards = [card]
-
-        self.stock_pile.visible_cards = cards
-
-        # for card in self.stock_pile.visible_cards:
-        #     print(card)
-        #
-        # self.drawer.draw_stock_pile(self.stock_pile)
-
-        # card1 = Card(suit_symbol="♥", rank="A")
-        #
-        # self.drawer.draw_card(card, 0, 0)
-        #
-        # self.drawer.draw_tableau_pile(self.tableau_piles[3], 5, 0, is_selected=False)
 
         while self.run:
 
@@ -131,7 +106,6 @@ class GameManager:
                 else:
                     self.move_order_vertical_index = len(self.foundation_piles) - 1
             elif move_order_item[0] == "stack_pile":
-                print(self.move_order_vertical_index)
                 if self.move_order_vertical_index > 0:
                     self.move_order_vertical_index -= 1
             self.process_vertical_move()
@@ -152,7 +126,6 @@ class GameManager:
             self.process_vertical_move()
         elif action == "use":
             move_order_item = self.move_order[self.move_order_horizontal_index].split("-")
-            print(f"Vertical index - {self.move_order_vertical_index}")
             if self.selected_card_pile.is_empty():
                 if move_order_item[0] == "tableau_pile":
                     horizontal_index = int(move_order_item[1])
@@ -168,7 +141,6 @@ class GameManager:
                         else:
                             self.stock_pile.draw_card()
                     else:
-                        print("dodajemy karte z stosu stock")
                         card_to_add = self.stock_pile.visible_cards[-1]
                         print(card_to_add)
                         card_to_add.in_selection = True

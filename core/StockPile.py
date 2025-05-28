@@ -19,8 +19,17 @@ class StockPile(CardStack):
             if self.is_empty():
                 self.shuffle_deck()
             card = self.remove_top_card()
+            if card is None:
+                self.shuffle_deck()
+                return
             card.flip()
             self.visible_cards.append(card)
+
+
+    def remove_top_card(self):
+        if not self.hidden_cards:
+            return None
+        return self.hidden_cards.pop()
 
     def is_empty(self):
         return len(self.hidden_cards) == 0
@@ -33,8 +42,9 @@ class StockPile(CardStack):
         self.hidden_cards = self.shuffler.shuffle(self.hidden_cards)
 
     def pop_card(self):
-        if self.is_empty():
-            return None
+        if len(self.visible_cards) == 0:
+            self.shuffle_deck()
+            return
         self.visible_cards.pop()
 
 

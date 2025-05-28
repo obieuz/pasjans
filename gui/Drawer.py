@@ -12,6 +12,7 @@ class Drawer:
         self.foreground_color = 5
         self.background_color = curses.COLOR_GREEN
         self.card_background_color = curses.COLOR_WHITE
+        self.numbers_of_cards_in_stock_pile = 3
 
         self.screen = stdscr
 
@@ -88,7 +89,9 @@ class Drawer:
 
     def draw_tableau_pile(self, tableau_pile, x=0, y=0):
         if len(tableau_pile.visible_cards) == 0 and len(tableau_pile.hidden_cards) == 0:
-            print("Empty tableau pile")
+            self.draw_blank_card("?", x, y)
+            if tableau_pile.is_selected:
+                self.draw_border_around_object(x, y, self.card_width + 2, self.card_height + 2)
             return
         elif len(tableau_pile.hidden_cards) == 0:
             cards = tableau_pile.visible_cards
@@ -155,8 +158,11 @@ class Drawer:
 
         card_gap = self.column_gap
 
-        for i, card in enumerate(stock_pile.visible_cards):
-            if i == len(stock_pile.visible_cards) - 1:
+
+        visible_cards = stock_pile.visible_cards[-self.numbers_of_cards_in_stock_pile:]
+
+        for i, card in enumerate(visible_cards):
+            if i == len(visible_cards) - 1:
                 self.draw_card(card, x, y + card_gap + self.card_height + i * self.card_hidden_height, True)
                 continue
             self.draw_card(card, x, y + card_gap + self.card_height + i * self.card_hidden_height, False)

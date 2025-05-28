@@ -63,8 +63,9 @@ class TableauPile:
             print("Index out of range.")
             return None
 
-        print(index)
-        print(self.visible_cards[index+cards_to_delete:])
+        if index > 0:
+            self.visible_cards = self.visible_cards[:index]
+            return
 
         self.visible_cards = self.visible_cards[index+cards_to_delete:]
         self.flip_after_deleting()
