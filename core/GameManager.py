@@ -146,6 +146,8 @@ class GameManager:
                     self.selected_card_pile.add_cards(cards_to_add, self.move_order_horizontal_index, self.move_order_vertical_index)
                 if move_order_item[0] == "stack_pile":
                     if self.move_order_vertical_index == 0:
+                        if len(self.stock_pile.visible_cards) == 0 and len(self.stock_pile.hidden_cards) == 0:
+                            return
                         if self.stock_pile.is_empty():
                             self.stock_pile.shuffle_deck()
                         self.number_of_moves = self.number_of_moves + 1
@@ -172,6 +174,8 @@ class GameManager:
                         self.foundation_piles[self.move_order_vertical_index].add_cards(self.selected_card_pile.cards)
                     self.clear_selection()
                 elif move_order_item[0] == "stack_pile":
+                    if len(self.stock_pile.visible_cards) == 0 and len(self.stock_pile.hidden_cards) == 0:
+                        return
                     if self.move_order_vertical_index != 0:
                         return
                     if self.stock_pile.is_empty():
