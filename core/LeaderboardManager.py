@@ -31,7 +31,6 @@ class LeaderboardManager:
     def get_scores(self) -> List[Dict]:
         """Wczytuje leaderboard z pliku JSON."""
 
-        print("hejo")
         if not self.filepath.exists():
             return []
         try:

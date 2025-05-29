@@ -25,16 +25,17 @@ class KeyBoardInputHandler:
 
 class GameManager:
     def __init__(self):
+        self.end_screen = None
         self.game_settings = None
         self.foundation_piles = None
         self.drawer = None
-        self.console = Console()
         self.tableau_piles = None
         self.CardRenderer = None
         self.stock_pile = None
         self.selected_card_pile = SelectedCardPile()
         self.deck = None
         self.difficulty = None
+        self.console = Console()
         self.input_handler = None
         self.run = True
         self.number_of_moves = 0
@@ -47,9 +48,7 @@ class GameManager:
         self.leaderboard_manager_instance = LeaderboardManager()
 
     def start_game(self):
-
         menu = StartMenu(self.console)
-        self.end_screen = end_screen = EndScreen(self.console,self.leaderboard_manager_instance)
         self.game_settings = menu.display()
         os.system("cls")
         if not self.game_settings:
@@ -70,6 +69,9 @@ class GameManager:
         self.prepare_board()
 
         curses.wrapper(self.run_game)
+
+        self.end_screen = EndScreen(self.console, self.leaderboard_manager_instance)
+        self.end_screen.display(self.is_won, self.game_settings["nickname"], self.number_of_moves, self.time)
 
     def run_game(self, screen):
         self.drawer = Drawer(self.CardRenderer, screen, graphic_mode=self.game_settings["color_mode"])
@@ -93,11 +95,6 @@ class GameManager:
             action = self.input_handler.get_player_action()
             if action:
                 self.process_action(action)
-
-        self.end_screen.display(self.is_won,self.game_settings["nickname"],self.number_of_moves,self.time)
-
-
-
 
     def prepare_board(self):
         for i in range(7):

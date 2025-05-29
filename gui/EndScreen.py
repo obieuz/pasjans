@@ -13,15 +13,12 @@ from rich.live import Live
 
 
 class EndScreen:
-    def __init__(self,console: Console, leaderboard_mgr: LeaderboardManager):
+    def __init__(self,console, leaderboard_mgr: LeaderboardManager):
         self.console = console
         self.leaderboard_mgr = leaderboard_mgr
 
     def _display_leaderboard(self, current_leaderboard: Optional[list] = None):
-        if current_leaderboard is None:
-            leaderboard_data = self.leaderboard_mgr.get_scores()
-        else:
-            leaderboard_data = current_leaderboard
+        leaderboard_data = self.leaderboard_mgr.get_scores()
 
         if not leaderboard_data:
             self.console.print(Align.center(Text("Leaderboard jest pusty.", style="italic yellow")))
@@ -55,7 +52,6 @@ class EndScreen:
             panel_title = "[bold green]Gratulacje![/bold green]"
             panel_border_style = "green"
             main_message = f"Brawo, {nickname}! Ukończyłeś Pasjansa."
-            # Dodaj wynik do leaderboardu tylko jeśli wygrał
             current_leaderboard = self.leaderboard_mgr.add_score(nickname, moves_count,
                                                                                elapsed_time_seconds)
         else:
@@ -85,7 +81,8 @@ class EndScreen:
         self.console.print(Align.center(summary_panel))
         self.console.print()
 
-        self._display_leaderboard(current_leaderboard=current_leaderboard if game_won else None)
+        if game_won:
+            self._display_leaderboard(current_leaderboard)
         self.console.print()
 
         play_again = Confirm.ask("[bold cyan]Czy chcesz zagrać jeszcze raz?[/bold cyan]", default=True)
