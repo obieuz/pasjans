@@ -1,4 +1,5 @@
 import os
+import threading
 
 from core.Card import Card
 from rich.console import Console
@@ -16,6 +17,7 @@ from gui.StartMenu import StartMenu
 from gui.TextCardRenderer import TextCardRenderer
 import curses
 import copy
+from time import time
 from core.LeaderboardManager import LeaderboardManager
 
 
@@ -321,3 +323,11 @@ class GameManager:
             if tableau_pile.visible_cards:
                 return False
         return True
+    def start_timer(self):
+        def timer():
+            while self.run:
+                time.sleep(1)
+                self.time += 1
+
+        timer_thread = threading.Thread(target=timer, daemon=True)
+        timer_thread.start()

@@ -50,3 +50,15 @@ dodac tryby kolorw, klasyczny czerwony bialy i inne theme, moze customy
 ### Tryby gry
 
 Graficzby - wymagania cmd min wysokosc 50, szerokosc 100
+
+
+
+# TODO
+
+- naprawic wyswietlanie pasjansa ( w zaleznosci od ekranu zaleza odstepy)
+
+- czas
+
+- dodac wybieranie trybu ktory bedzie zalezal od wielkosci terminala
+
+- zobaczyc czy przegrywanie dziala
