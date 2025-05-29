@@ -82,12 +82,8 @@ class GameManager:
 
         self.timer.start_timer()
         while self.run:
-            try:
-                self.drawer.draw_game_board(self.stock_pile, self.tableau_piles, self.foundation_piles,
-                                            self.number_of_moves)
-            except curses.error as E:
-                self.drawer.draw_game_board(self.stock_pile, self.tableau_piles, self.foundation_piles,
-                                            self.number_of_moves)
+            self.drawer.draw_game_board(self.stock_pile, self.tableau_piles, self.foundation_piles,
+                                        self.number_of_moves)
 
             action = self.input_handler.get_player_action()
             if action:
@@ -96,8 +92,6 @@ class GameManager:
             if self.check_for_win():
                 self.run = False
                 self.is_won = True
-            elif self.check_for_loss():
-                self.run = False
 
         self.timer.stop_timer()
 
@@ -325,13 +319,5 @@ class GameManager:
     def check_for_win(self):
         for foundation_pile in self.foundation_piles:
             if len(foundation_pile.cards) != 13:
-                return False
-        return True
-
-    def check_for_loss(self):
-        if not self.stock_pile.is_empty():
-            return False
-        for tableau_pile in self.tableau_piles:
-            if tableau_pile.visible_cards:
                 return False
         return True
