@@ -11,7 +11,6 @@ from rich.align import Align
 from rich.prompt import Confirm
 from rich.live import Live
 
-
 class EndScreen:
     def __init__(self,console, leaderboard_mgr: LeaderboardManager):
         self.console = console

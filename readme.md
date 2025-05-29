@@ -1,64 +1,54 @@
-- chce zrobic to obiektowo
+# Sposób uruchomienia aplikacji
 
-- chce zapisywac stan gry aby latwo można było wrócić do poprzedniego stanu (folder data)
+Aby uruchomić aplikację, wykonaj następujące kroki:
+1. Upewnij się, że masz zainstalowanego Pythona w wersji 3.12 lub nowszej.
+2. Rozpakuj archiwum z grą.
+3. Otwórz terminal i przejdź do katalogu, w którym znajduje się gra.
+4. Zainstaluj wymagane biblioteki, uruchamiając polecenie:
+   ```bash
+   pip install -r requirements.txt
+   ```
+5. Uruchom grę, wpisując w terminalu:
+   ```bash
+    python main.py
+    ```
+6. Baw się dobrze!
 
-- chce zrobic ladne karty (/gui)
+# Instrukcja rozgrywki
 
-- chce zrobic testy (/tests)
+## Poruszanie się
 
-- dwa tryby graficzne :
-- 1. karty
-```
-     ♠-------♠
-     | A     |
-     ♣-------♣
-     | K     |
-     ♦-------♦
-     | Q     |
-     ♥-------♥
-     | J     |
-```
-- 2. tekstowy
-```
-     [A♠]
-     [K♥]
-     [7♦]
-```
+Aby poruszać się po planszy, użyj klawiszy strzałek na klawiaturze. 
 
-## Mechanika dodawanie kart
+## Wybieranie kart
 
-Chce aby ruszalo sie strzalkami <- -> lewo prawo i enterem selectowalo sie karte
-niech ta karta wtedy swieci sie na zielono
+Aby wybrać kartę, naciśnij `Enter` na klawiaturze. Zauważysz, że wybrana karta zostanie podświetlona.
 
-## Dwie mechaniki poruszania :
-myszka,
-klawiatura
+## Dobieranie kart
 
-## Dodac licznik czasu i ruchów
+Są dwie metody dobierania kart:
 
-fajnie by bylo by co ruch odswiezalo sie karty i czyscilo poprzednie
+1. Naciśnij `D` na klawiaturze. Gra automatycznie dobierze kartę z talii i doda ją do twojej ręki.
+2. Zaznacz stos kart, i kliknij enter.
 
+## Cofanie ruchów
 
-```bash
-$ cd C:\Users\robiz\OneDrive\Dokumenty\GitHub\Dziennik\pasjans\
-$ .venv\Scripts\activate
-```
+Aby cofnąć ostatni ruch, naciśnij `l` na klawiaturze. Gra przywróci poprzedni stan planszy. Uwaga: możesz cofnąć tylko ostatnie 3 ruchy.
 
-dodac tryby kolorw, klasyczny czerwony bialy i inne theme, moze customy
+## Zmiana trybów graficznych
 
+Tryby graficznie zmieniają się od szerokości konsoli.
+Widełki szerokości konsoli:
+- 44 - 70px
+- 70 - 150px
+- 150px i więcej
 
-### Tryby gry
+## Tryby trudności
 
-Graficzby - wymagania cmd min wysokosc 50, szerokosc 100
+- Łatwy: dobierasz po 1 kartę
+- Trudny: dobierasz po 3 karty
 
+# Dokumentacja
 
+Znajduję się w katalogu `docs/`.
 
-# TODO
-
-- naprawic wyswietlanie pasjansa ( w zaleznosci od ekranu zaleza odstepy)
-
-- czas
-
-- dodac wybieranie trybu ktory bedzie zalezal od wielkosci terminala
-
-- zobaczyc czy przegrywanie dziala

@@ -42,19 +42,32 @@ class GameManager:
         self.move_order_vertical_index = 0
         self.move_order = ["stack_pile-0"] + ["tableau_pile-" + str(i) for i in range(0, 7)] + ["foundation_pile-0"]
         self.is_won = False
-        self.leaderboard_manager_instance = LeaderboardManager()
+        self.leaderboard_manager_instance = None
         self.timer = Timer()
+
+        self._action_handlers = {
+            "ACTION_QUIT": self._handle_quit,
+            "ACTION_LOAD": self._handle_load,
+            "ACTION_RESTART": self._handle_restart,
+            "ACTION_MOVE_RIGHT": self._handle_move_right,
+            "ACTION_MOVE_LEFT": self._handle_move_left,
+            "ACTION_MOVE_UP": self._handle_move_up,
+            "ACTION_MOVE_DOWN": self._handle_move_down,
+            "ACTION_USE": self._handle_use,
+            "ACTION_RESIZE": self._handle_resize,
+            "ACTION_DRAW_CARD": self._handle_draw_card
+        }
 
     def start_game(self):
         self.timer.reset_timer()
-        os.system("cls")
+        self._clear_screen()
         menu = StartMenu(self.console)
         self.game_settings = menu.display()
-        os.system("cls")
         if not self.game_settings:
             print("Gra anulowana.")
             return
         self.difficulty = self.game_settings["difficulty"]
+        self.leaderboard_manager_instance = LeaderboardManager()
 
         self.run = True
         self.deck = Deck()
@@ -68,13 +81,14 @@ class GameManager:
 
         curses.wrapper(self.run_game)
 
+        self._clear_screen()
         self.end_screen = EndScreen(self.console, self.leaderboard_manager_instance)
         if self.end_screen.display(self.is_won, self.game_settings["nickname"], self.number_of_moves,
                                    self.timer.get_time()):
-            os.system("cls")
+            self._clear_screen()
             self.start_game()
         else:
-            os.system("cls")
+            self._clear_screen()
 
     def run_game(self, screen):
         self.drawer = Drawer(screen, graphic_mode=self.game_settings["color_mode"])
@@ -127,114 +141,9 @@ class GameManager:
                 self.game_state_saver
             )
 
-        if action == "quit":
-            self.run = False
-        elif action == "help":
-            self.drawer.show_help()
-        elif action == "load":
-            self.go_back()
-        elif action == "restart":
-            self.start_game()
-        elif action == "move_right":
-            self.clear_vertical_selection()
-            self.move_order_horizontal_index = (self.move_order_horizontal_index + 1) % len(self.move_order)
-            self.process_horizontal_move()
-        elif action == "move_left":
-            self.clear_vertical_selection()
-            self.move_order_horizontal_index = (self.move_order_horizontal_index - 1) % len(self.move_order)
-            self.process_horizontal_move()
-        elif action == "move_up":
-            move_order_item = self.move_order[self.move_order_horizontal_index].split("-")
-            if move_order_item[0] == "tableau_pile":
-                if self.move_order_vertical_index > 0:
-                    self.move_order_vertical_index -= 1
-            elif move_order_item[0] == "foundation_pile":
-                if self.move_order_vertical_index > 0:
-                    self.move_order_vertical_index -= 1
-                else:
-                    self.move_order_vertical_index = len(self.foundation_piles) - 1
-            elif move_order_item[0] == "stack_pile":
-                if self.move_order_vertical_index > 0:
-                    self.move_order_vertical_index -= 1
-            self.process_vertical_move()
-        elif action == "move_down":
-            move_order_item = self.move_order[self.move_order_horizontal_index].split("-")
-            if move_order_item[0] == "tableau_pile":
-                if self.move_order_vertical_index < len(
-                        self.tableau_piles[self.move_order_horizontal_index - 1].visible_cards) - 1:
-                    self.move_order_vertical_index += 1
-            elif move_order_item[0] == "foundation_pile":
-                if self.move_order_vertical_index < len(self.foundation_piles) - 1:
-                    self.move_order_vertical_index += 1
-                else:
-                    self.move_order_vertical_index = 0
-            elif move_order_item[0] == "stack_pile":
-                if self.move_order_vertical_index <= len(self.stock_pile.visible_cards):
-                    self.move_order_vertical_index += 1
-            self.process_vertical_move()
-        elif action == "use":
-            move_order_item = self.move_order[self.move_order_horizontal_index].split("-")
-            if self.selected_card_pile.is_empty():
-                if move_order_item[0] == "tableau_pile":
-                    horizontal_index = int(move_order_item[1])
-
-                    cards_to_add = self.tableau_piles[horizontal_index].visible_cards[self.move_order_vertical_index:]
-                    for card in cards_to_add:
-                        card.in_selection = True
-                    self.selected_card_pile.add_cards(cards_to_add, self.move_order_horizontal_index,
-                                                      self.move_order_vertical_index)
-                if move_order_item[0] == "stack_pile":
-                    if self.move_order_vertical_index == 0:
-                        if len(self.stock_pile.visible_cards) == 0 and len(self.stock_pile.hidden_cards) == 0:
-                            return
-                        if self.stock_pile.is_empty():
-                            self.stock_pile.shuffle_deck()
-                        self.number_of_moves = self.number_of_moves + 1
-                        self.stock_pile.draw_card()
-                    else:
-                        card_to_add = self.stock_pile.visible_cards[-1]
-                        card_to_add.in_selection = True
-                        self.selected_card_pile.add_cards([card_to_add], self.move_order_horizontal_index,
-                                                          self.move_order_vertical_index + 1)
-
-            else:
-                if move_order_item[0] == "tableau_pile":
-                    horizontal_index = int(move_order_item[1])
-                    if self.tableau_piles[horizontal_index].can_place_card(self.selected_card_pile.cards[0]):
-                        self.number_of_moves = + self.number_of_moves + 1
-                        self.process_deleting_card()
-                        self.tableau_piles[horizontal_index].add_cards(self.selected_card_pile.cards)
-                    self.clear_selection()
-                elif move_order_item[0] == "foundation_pile":
-                    if len(self.selected_card_pile.cards) == 0:
-                        return
-                    if self.foundation_piles[self.move_order_vertical_index].can_accept_card(
-                            self.selected_card_pile.cards[0]):
-                        self.number_of_moves = self.number_of_moves + 1
-                        self.process_deleting_card()
-                        self.foundation_piles[self.move_order_vertical_index].add_cards(self.selected_card_pile.cards)
-                    self.clear_selection()
-                elif move_order_item[0] == "stack_pile":
-                    if len(self.stock_pile.visible_cards) == 0 and len(self.stock_pile.hidden_cards) == 0:
-                        return
-                    if self.move_order_vertical_index != 0:
-                        return
-                    if self.stock_pile.is_empty():
-                        self.stock_pile.shuffle_deck()
-                    self.number_of_moves = self.number_of_moves + 1
-                    self.stock_pile.draw_card()
-        elif action == "resize":
-
-
-            self.drawer.resize_window()
-
-            if self.drawer.screen_width <= 44:
-                self.run = False
-                print("Zbyt mały rozmiar okna. Proszę zwiększyć rozmiar okna.")
-                return
-
-            self.drawer.draw_game_board(self.stock_pile, self.tableau_piles, self.foundation_piles,
-                                        self.number_of_moves)
+        handler = self._action_handlers.get(action)
+        if handler:
+            handler()
 
     def process_horizontal_move(self):
         self.clear_horizontal_selection()
@@ -255,7 +164,6 @@ class GameManager:
         move_order_item = self.move_order[self.move_order_horizontal_index].split("-")
         if move_order_item[0] == "tableau_pile":
             horizontal_index = int(move_order_item[1])
-            print("Horizontal index:", horizontal_index)
             self.tableau_piles[horizontal_index].visible_cards[
                 self.move_order_vertical_index].is_selected = True
 
@@ -302,7 +210,7 @@ class GameManager:
             for card in self.stock_pile.visible_cards:
                 card.is_selected = False
 
-    def go_back(self):
+    def load(self):
         state = self.game_state_saver.load_state()
         if state:
             self.stock_pile = state["stock_pile"]
@@ -313,11 +221,135 @@ class GameManager:
             self.move_order_horizontal_index = state["move_order_horizontal_index"]
             self.move_order_vertical_index = state["move_order_vertical_index"]
             self.number_of_moves = state["number_of_moves"]
-        else:
-            print("Nie ma stanu do załadowania.")
 
     def check_for_win(self):
         for foundation_pile in self.foundation_piles:
             if len(foundation_pile.cards) != 13:
                 return False
         return True
+
+    def _handle_quit(self):
+        self.run = False
+
+    def _handle_load(self):
+        self.load()
+
+    def _handle_restart(self):
+        self.start_game()
+
+    def _clear_screen(self):
+        os.system("cls" if os.name == "nt" else "clear")
+
+    def _get_current_pile_info(self):
+        current_move_target_str = self.move_order[self.move_order_horizontal_index]
+        parts = current_move_target_str.split("-")
+        pile_type_str = parts[0]
+        pile_index_in_category = int(parts[1])
+        return pile_type_str, pile_index_in_category
+
+    def _handle_move_right(self):
+        self.clear_vertical_selection()
+        self.move_order_horizontal_index = (self.move_order_horizontal_index + 1) % len(self.move_order)
+        self.process_horizontal_move()
+
+    def _handle_move_left(self):
+        self.clear_vertical_selection()
+        self.move_order_horizontal_index = (self.move_order_horizontal_index - 1) % len(self.move_order)
+        self.process_horizontal_move()
+
+    def _handle_move_up(self):
+        pile_type_str, pile_index_in_category = self._get_current_pile_info()
+        if pile_type_str == "tableau_pile":
+            if self.move_order_vertical_index > 0:
+                self.move_order_vertical_index -= 1
+        elif pile_type_str == "foundation_pile":
+            if self.move_order_vertical_index > 0:
+                self.move_order_vertical_index -= 1
+            else:
+                self.move_order_vertical_index = len(self.foundation_piles) - 1
+        elif pile_type_str == "stack_pile":
+            if self.move_order_vertical_index > 0:
+                self.move_order_vertical_index -= 1
+        self.process_vertical_move()
+
+    def _handle_move_down(self):
+        pile_type_str, pile_index_in_category = self._get_current_pile_info()
+        if pile_type_str == "tableau_pile":
+            if self.move_order_vertical_index < len(
+                    self.tableau_piles[pile_index_in_category].visible_cards) - 1:
+                self.move_order_vertical_index += 1
+        elif pile_type_str == "foundation_pile":
+            if self.move_order_vertical_index < len(self.foundation_piles) - 1:
+                self.move_order_vertical_index += 1
+            else:
+                self.move_order_vertical_index = 0
+        elif pile_type_str == "stack_pile":
+            if self.move_order_vertical_index <= len(self.stock_pile.visible_cards):
+                self.move_order_vertical_index += 1
+        self.process_vertical_move()
+
+    def _handle_use(self):
+        pile_type_str, pile_index_in_category = self._get_current_pile_info()
+        if self.selected_card_pile.is_empty():
+            if pile_type_str == "tableau_pile":
+                cards_to_add = self.tableau_piles[pile_index_in_category].visible_cards[self.move_order_vertical_index:]
+                for card in cards_to_add:
+                    card.in_selection = True
+                self.selected_card_pile.add_cards(cards_to_add, self.move_order_horizontal_index,
+                                                  self.move_order_vertical_index)
+            elif pile_type_str == "stack_pile":
+                if self.move_order_vertical_index == 0:
+                    if len(self.stock_pile.visible_cards) == 0 and len(self.stock_pile.hidden_cards) == 0:
+                        return
+                    if self.stock_pile.is_empty():
+                        self.stock_pile.shuffle_deck()
+                    self.number_of_moves += 1
+                    self.stock_pile.draw_card()
+                else:
+                    card_to_add = self.stock_pile.visible_cards[-1]
+                    card_to_add.in_selection = True
+                    self.selected_card_pile.add_cards([card_to_add], self.move_order_horizontal_index,
+                                                      self.move_order_vertical_index + 1)
+        else:
+            if pile_type_str == "tableau_pile":
+                if self.tableau_piles[pile_index_in_category].can_place_card(self.selected_card_pile.cards[0]):
+                    self.number_of_moves += 1
+                    self.process_deleting_card()
+                    self.tableau_piles[pile_index_in_category].add_cards(self.selected_card_pile.cards)
+                self.clear_selection()
+            elif pile_type_str == "foundation_pile":
+                if len(self.selected_card_pile.cards) == 0:
+                    return
+                if self.foundation_piles[self.move_order_vertical_index].can_accept_card(
+                        self.selected_card_pile.cards[0]):
+                    self.number_of_moves += 1
+                    self.process_deleting_card()
+                    self.foundation_piles[self.move_order_vertical_index].add_cards(self.selected_card_pile.cards)
+                self.clear_selection()
+            elif pile_type_str == "stack_pile":
+                if len(self.stock_pile.visible_cards) == 0 and len(self.stock_pile.hidden_cards) == 0:
+                    return
+                if self.move_order_vertical_index != 0:
+                    return
+                if self.stock_pile.is_empty():
+                    self.stock_pile.shuffle_deck()
+                self.number_of_moves += 1
+
+    def _handle_resize(self):
+        self.drawer.resize_window()
+        if self.drawer.screen_width <= 44:
+            self.run = False
+            print("Zbyt mały rozmiar okna. Proszę zwiększyć rozmiar okna.")
+            return
+
+        self.drawer.draw_game_board(self.stock_pile, self.tableau_piles, self.foundation_piles, self.number_of_moves)
+
+    def _handle_draw_card(self):
+        if self.stock_pile.is_empty():
+            self.stock_pile.shuffle_deck()
+        self.stock_pile.draw_card()
+        self.number_of_moves += 1
+
+
+
+

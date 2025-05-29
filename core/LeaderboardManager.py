@@ -9,17 +9,11 @@ class LeaderboardManager:
     MAX_ENTRIES = 10
 
     def __init__(self, filepath: Optional[Path] = None, max_entries: Optional[int] = None):
-        """
-        Inicjalizuje LeaderboardManager.
-        :param filepath: Ścieżka do pliku leaderboardu.
-        :param max_entries: Maksymalna liczba wpisów w leaderboardzie.
-        """
         self.filepath = filepath if filepath is not None else self.DEFAULT_FILE_PATH
         self.max_entries = max_entries if max_entries is not None else self.MAX_ENTRIES
-        self.leaderboard_data: List[Dict] = []
+        self.leaderboard_data: List[Dict] = self._load()
 
     def _load(self):
-        """Wczytuje leaderboard z pliku JSON."""
         if not self.filepath.exists():
             return []
         try:
@@ -30,9 +24,7 @@ class LeaderboardManager:
             return []
 
     def _save(self):
-        """Zapisuje aktualny stan leaderboardu (self.leaderboard_data) do pliku JSON."""
         try:
-            data = self.leaderboard_data.extend(self._load())
             with open(self.filepath, "w", encoding="utf-8") as f:
                 json.dump(self.leaderboard_data, f, indent=4, ensure_ascii=False)
         except IOError:
@@ -40,24 +32,19 @@ class LeaderboardManager:
             pass
 
     def get_scores(self) -> List[Dict]:
-        """Wczytuje leaderboard z pliku JSON."""
         return self._load()
 
 
     def add_score(self, nickname: str, moves: int, time_seconds: int) -> bool:
-        """
-        Dodaje nowy wynik do leaderboardu, sortuje i zapisuje.
-        Zwraca True, jeśli wynik został dodany (i potencjalnie jest w top N), False w przeciwnym razie.
-        """
         new_score_entry = {
             "nickname": nickname,
             "moves": moves,
             "time_seconds": time_seconds,
-            "timestamp": datetime.datetime.now().isoformat(timespec='seconds')  # krótszy timestamp
+            "timestamp": datetime.datetime.now().isoformat(timespec='seconds')
         }
         self.leaderboard_data.append(new_score_entry)
 
-        self.leaderboard_data.sort(key=lambda x: (x.get("moves", float('inf')), x.get("time_seconds", float('inf'))))
+        self.leaderboard_data.sort(key=lambda x: (x.get("moves", float('inf'))))
 
         self.leaderboard_data = self.leaderboard_data[:self.max_entries]
 
@@ -67,7 +54,6 @@ class LeaderboardManager:
 
     @staticmethod
     def format_time(seconds: int) -> str:
-        """Formatuje sekundy do MM:SS. Metoda statyczna, bo nie zależy od stanu instancji."""
         minutes = seconds // 60
         secs = seconds % 60
         return f"{minutes:02d}:{secs:02d}"

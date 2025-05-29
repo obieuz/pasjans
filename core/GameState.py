@@ -1,7 +1,6 @@
 class GameState:
     def __init__(self):
         self.states = []
-        self.first_time_used = False
         self.last_number_of_move = -1
 
     def push_state(self, stock_pile, tableau_piles, foundation_piles,selected_card_pile , move_order, move_order_horizontal_index, move_order_vertical_index, number_of_moves, game_state):

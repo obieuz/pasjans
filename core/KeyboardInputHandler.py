@@ -14,24 +14,24 @@ class KeyboardInputHandler(InputHandler, ABC):
     def get_player_action(self):
         key = self.drawer.screen.getch()
         if key == ord('q'):
-            return "quit"
-        elif key == ord('h'):
-            return "help"
+            return "ACTION_QUIT"
         elif key == ord('r'):
-            return "restart"
+            return "ACTION_RESTART"
         elif key == ord('l'):
-            return "load"
+            return "ACTION_LOAD"
+        elif key == ord("d"):
+            return "ACTION_DRAW_CARD"
         elif key == curses.KEY_UP:
-            return "move_up"
+            return "ACTION_MOVE_UP"
         elif key == curses.KEY_DOWN:
-            return "move_down"
+            return "ACTION_MOVE_DOWN"
         elif key == curses.KEY_LEFT:
-            return "move_left"
+            return "ACTION_MOVE_LEFT"
         elif key == curses.KEY_RIGHT:
-            return "move_right"
+            return "ACTION_MOVE_RIGHT"
         elif key == curses.KEY_ENTER or key == 10 or key == 13:
-            return "use"
+            return "ACTION_USE"
         elif key == curses.KEY_RESIZE:
-            return "resize"
+            return "ACTION_RESIZE"
         else:
             return None

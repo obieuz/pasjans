@@ -73,8 +73,6 @@ class Drawer:
 
         self.draw_tableau_piles(tableau_piles)
 
-        # self.draw_foundation_piles(foundation_piles)
-
         self.draw_moves(number_of_moves)
 
         self.screen.refresh()
@@ -122,7 +120,6 @@ class Drawer:
         else:
             cards = tableau_pile.hidden_cards + tableau_pile.visible_cards
         if not cards:
-            print("No cards in tableau pile")
             return None
 
         if tableau_pile.is_selected:
@@ -153,9 +150,6 @@ class Drawer:
 
     def draw_foundation_piles(self, foundation_piles):
         starting_x = 8 * (self.card_width + self.column_gap)
-        print("Starting X:", starting_x)
-        print("Column:", self.column_gap)
-        print("Screen width:", self.screen_width)
         for i, foundation_pile in enumerate(foundation_piles):
             self.draw_foundation_pile(foundation_pile, starting_x, self.row_gap + i * (self.card_height + self.card_height))
 
@@ -167,7 +161,6 @@ class Drawer:
             lines = blank_card
 
         for i, line in enumerate(lines):
-            print(len(line))
             self.screen.addstr(y + i, x, line, curses.color_pair(self.foreground_color))
 
     def draw_stock_pile(self, stock_pile, x=1, y=0):
@@ -214,7 +207,6 @@ class Drawer:
     def draw_moves(self, number_of_moves, x=0, y=0):
         moves_text = f"Liczba ruchów: {number_of_moves}"
 
-        print((self.screen_width // 2) - (len(moves_text) // 2))
 
         self.screen.addstr(y, (self.screen_width // 2) - (len(moves_text) // 2), moves_text,
                            curses.color_pair(self.secondary_color))
