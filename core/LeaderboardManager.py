@@ -1,4 +1,3 @@
-# leaderboard_manager.py (teraz jako klasa)
 import json
 import datetime
 from pathlib import Path
@@ -19,9 +18,21 @@ class LeaderboardManager:
         self.max_entries = max_entries if max_entries is not None else self.MAX_ENTRIES
         self.leaderboard_data: List[Dict] = []
 
+    def _load(self):
+        """Wczytuje leaderboard z pliku JSON."""
+        if not self.filepath.exists():
+            return []
+        try:
+            with open(self.filepath, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                return data
+        except (json.JSONDecodeError, IOError):
+            return []
+
     def _save(self):
         """Zapisuje aktualny stan leaderboardu (self.leaderboard_data) do pliku JSON."""
         try:
+            data = self.leaderboard_data.extend(self._load())
             with open(self.filepath, "w", encoding="utf-8") as f:
                 json.dump(self.leaderboard_data, f, indent=4, ensure_ascii=False)
         except IOError:
@@ -30,16 +41,8 @@ class LeaderboardManager:
 
     def get_scores(self) -> List[Dict]:
         """Wczytuje leaderboard z pliku JSON."""
+        return self._load()
 
-        if not self.filepath.exists():
-            return []
-        try:
-            with open(self.filepath, "r", encoding="utf-8") as f:
-                data = json.load(f)
-                print(data)
-                return data
-        except (json.JSONDecodeError, IOError):
-            return []
 
     def add_score(self, nickname: str, moves: int, time_seconds: int) -> bool:
         """

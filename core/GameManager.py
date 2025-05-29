@@ -71,7 +71,11 @@ class GameManager:
         curses.wrapper(self.run_game)
 
         self.end_screen = EndScreen(self.console, self.leaderboard_manager_instance)
-        self.end_screen.display(self.is_won, self.game_settings["nickname"], self.number_of_moves, self.time)
+        if self.end_screen.display(self.is_won, self.game_settings["nickname"], self.number_of_moves, self.time):
+            os.system("cls")
+            self.start_game()
+        else:
+            os.system("cls")
 
     def run_game(self, screen):
         self.drawer = Drawer(self.CardRenderer, screen, graphic_mode=self.game_settings["color_mode"])
