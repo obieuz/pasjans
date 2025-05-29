@@ -17,12 +17,9 @@ from gui.StartMenu import StartMenu
 from gui.TextCardRenderer import TextCardRenderer
 import curses
 import copy
-from time import time
+import time
 from core.LeaderboardManager import LeaderboardManager
-
-
-class KeyBoardInputHandler:
-    pass
+from core.Timer import Timer
 
 
 class GameManager:
@@ -32,7 +29,6 @@ class GameManager:
         self.foundation_piles = None
         self.drawer = None
         self.tableau_piles = None
-        self.CardRenderer = None
         self.stock_pile = None
         self.selected_card_pile = SelectedCardPile()
         self.deck = None
@@ -46,10 +42,12 @@ class GameManager:
         self.move_order_vertical_index = 0
         self.move_order = ["stack_pile-0"] + ["tableau_pile-" + str(i) for i in range(0, 7)] + ["foundation_pile-0"]
         self.is_won = False
-        self.time = None
         self.leaderboard_manager_instance = LeaderboardManager()
+        self.timer = Timer()
 
     def start_game(self):
+        self.timer.reset_timer()
+        os.system("cls")
         menu = StartMenu(self.console)
         self.game_settings = menu.display()
         os.system("cls")
@@ -61,29 +59,39 @@ class GameManager:
         self.run = True
         self.deck = Deck()
         self.deck.shuffle()
-        self.CardRenderer = GraphicCardRenderer()
         self.tableau_piles = []
         self.foundation_piles = []
         self.number_of_moves = 0
         self.is_won = False
-        self.time = 10
 
         self.prepare_board()
 
         curses.wrapper(self.run_game)
 
         self.end_screen = EndScreen(self.console, self.leaderboard_manager_instance)
-        if self.end_screen.display(self.is_won, self.game_settings["nickname"], self.number_of_moves, self.time):
+        if self.end_screen.display(self.is_won, self.game_settings["nickname"], self.number_of_moves,
+                                   self.timer.get_time()):
             os.system("cls")
             self.start_game()
         else:
             os.system("cls")
 
     def run_game(self, screen):
-        self.drawer = Drawer(self.CardRenderer, screen, graphic_mode=self.game_settings["color_mode"])
+        self.drawer = Drawer(screen, graphic_mode=self.game_settings["color_mode"])
         self.input_handler = KeyboardInputHandler(self.drawer)
 
+        self.timer.start_timer()
         while self.run:
+            try:
+                self.drawer.draw_game_board(self.stock_pile, self.tableau_piles, self.foundation_piles,
+                                            self.number_of_moves)
+            except curses.error as E:
+                self.drawer.draw_game_board(self.stock_pile, self.tableau_piles, self.foundation_piles,
+                                            self.number_of_moves)
+
+            action = self.input_handler.get_player_action()
+            if action:
+                self.process_action(action)
 
             if self.check_for_win():
                 self.run = False
@@ -91,16 +99,7 @@ class GameManager:
             elif self.check_for_loss():
                 self.run = False
 
-            self.drawer.draw_game_board(
-                self.stock_pile,
-                self.tableau_piles,
-                self.foundation_piles,
-                self.number_of_moves
-            )
-
-            action = self.input_handler.get_player_action()
-            if action:
-                self.process_action(action)
+        self.timer.stop_timer()
 
     def prepare_board(self):
         for i in range(7):
@@ -132,7 +131,7 @@ class GameManager:
                 self.move_order_vertical_index,
                 self.number_of_moves,
                 self.game_state_saver
-                )
+            )
 
         if action == "quit":
             self.run = False
@@ -188,7 +187,8 @@ class GameManager:
                     cards_to_add = self.tableau_piles[horizontal_index].visible_cards[self.move_order_vertical_index:]
                     for card in cards_to_add:
                         card.in_selection = True
-                    self.selected_card_pile.add_cards(cards_to_add, self.move_order_horizontal_index, self.move_order_vertical_index)
+                    self.selected_card_pile.add_cards(cards_to_add, self.move_order_horizontal_index,
+                                                      self.move_order_vertical_index)
                 if move_order_item[0] == "stack_pile":
                     if self.move_order_vertical_index == 0:
                         if len(self.stock_pile.visible_cards) == 0 and len(self.stock_pile.hidden_cards) == 0:
@@ -200,21 +200,23 @@ class GameManager:
                     else:
                         card_to_add = self.stock_pile.visible_cards[-1]
                         card_to_add.in_selection = True
-                        self.selected_card_pile.add_cards([card_to_add], self.move_order_horizontal_index, self.move_order_vertical_index+1)
+                        self.selected_card_pile.add_cards([card_to_add], self.move_order_horizontal_index,
+                                                          self.move_order_vertical_index + 1)
 
             else:
                 if move_order_item[0] == "tableau_pile":
                     horizontal_index = int(move_order_item[1])
                     if self.tableau_piles[horizontal_index].can_place_card(self.selected_card_pile.cards[0]):
-                        self.number_of_moves =+ self.number_of_moves + 1
+                        self.number_of_moves = + self.number_of_moves + 1
                         self.process_deleting_card()
                         self.tableau_piles[horizontal_index].add_cards(self.selected_card_pile.cards)
                     self.clear_selection()
                 elif move_order_item[0] == "foundation_pile":
                     if len(self.selected_card_pile.cards) == 0:
                         return
-                    if self.foundation_piles[self.move_order_vertical_index].can_accept_card(self.selected_card_pile.cards[0]):
-                        self.number_of_moves = self.number_of_moves +1
+                    if self.foundation_piles[self.move_order_vertical_index].can_accept_card(
+                            self.selected_card_pile.cards[0]):
+                        self.number_of_moves = self.number_of_moves + 1
                         self.process_deleting_card()
                         self.foundation_piles[self.move_order_vertical_index].add_cards(self.selected_card_pile.cards)
                     self.clear_selection()
@@ -227,8 +229,18 @@ class GameManager:
                         self.stock_pile.shuffle_deck()
                     self.number_of_moves = self.number_of_moves + 1
                     self.stock_pile.draw_card()
+        elif action == "resize":
 
 
+            self.drawer.resize_window()
+
+            if self.drawer.screen_width <= 44:
+                self.run = False
+                print("Zbyt mały rozmiar okna. Proszę zwiększyć rozmiar okna.")
+                return
+
+            self.drawer.draw_game_board(self.stock_pile, self.tableau_piles, self.foundation_piles,
+                                        self.number_of_moves)
 
     def process_horizontal_move(self):
         self.clear_horizontal_selection()
@@ -264,7 +276,8 @@ class GameManager:
         move_order_item = self.move_order[self.selected_card_pile.selected_from_horizontal_index].split("-")
         if move_order_item[0] == "tableau_pile":
             pile = self.tableau_piles[int(move_order_item[1])]
-            pile.remove_cards_to_index(self.selected_card_pile.selected_from_vertical_index,len(self.selected_card_pile.cards))
+            pile.remove_cards_to_index(self.selected_card_pile.selected_from_vertical_index,
+                                       len(self.selected_card_pile.cards))
         elif move_order_item[0] == "stack_pile":
             self.stock_pile.pop_card()
         for card in self.selected_card_pile.cards:
@@ -309,10 +322,9 @@ class GameManager:
         else:
             print("Nie ma stanu do załadowania.")
 
-
     def check_for_win(self):
         for foundation_pile in self.foundation_piles:
-            if len(foundation_pile.cards) != 0:
+            if len(foundation_pile.cards) != 13:
                 return False
         return True
 
@@ -323,11 +335,3 @@ class GameManager:
             if tableau_pile.visible_cards:
                 return False
         return True
-    def start_timer(self):
-        def timer():
-            while self.run:
-                time.sleep(1)
-                self.time += 1
-
-        timer_thread = threading.Thread(target=timer, daemon=True)
-        timer_thread.start()

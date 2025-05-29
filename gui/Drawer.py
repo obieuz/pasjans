@@ -1,11 +1,18 @@
 import curses
-
+import os
 from gui.GraphicCardRenderer import GraphicCardRenderer
 from gui.TextCardRenderer import TextCardRenderer
 
 
+def get_terminal_size():
+    rows, columns = os.get_terminal_size()
+    return rows, columns
+
+
 class Drawer:
-    def __init__(self, card_renderer, stdscr, graphic_mode="default"):
+    def __init__(self, stdscr, graphic_mode="default"):
+        self.screen_width = None
+        self.screen_height = None
         self.primary_color = 1
         self.secondary_color = 2
         self.selected_color = 3
@@ -16,23 +23,39 @@ class Drawer:
 
         self.screen = stdscr
 
+        self.screen_height, self.screen_width = self.screen.getmaxyx()
+        self.card_renderer = GraphicCardRenderer(self.screen_width)
+
         curses.start_color()
         curses.init_pair(4, self.foreground_color, self.background_color)
 
         self.screen.bkgd(' ', curses.color_pair(4))
         self.screen.clear()
         self.screen.refresh()
-        self.column_gap = 3
-        self.row_gap = 3
+        self.column_gap = self.min_column_gap = 3
+        self.row_gap = self.min_row_gap = 3
 
-        if isinstance(card_renderer, GraphicCardRenderer):
+        if isinstance(self.card_renderer, GraphicCardRenderer):
             self.card_hidden_height = 2
             self.card_width = 9
             self.card_height = 7
-        if isinstance(card_renderer, TextCardRenderer):
+        if isinstance(self.card_renderer, TextCardRenderer):
             self.card_hidden_height = 1
-            self.card_width = 5
+            self.card_width = 3
             self.card_height = 1
+
+        if self.screen_width < 150:
+            self.card_width = 5
+            self.card_height = 5
+
+        if self.screen_width < 70:
+            self.card_hidden_height = 1
+            self.card_renderer = TextCardRenderer()
+            self.card_width = 3
+            self.card_height = 1
+
+
+        self.calculate_gaps()
 
         if graphic_mode == "default":
             curses.init_pair(1, curses.COLOR_RED, self.card_background_color)
@@ -40,24 +63,23 @@ class Drawer:
             curses.init_pair(3, curses.COLOR_CYAN, self.card_background_color)
             curses.init_pair(5, curses.COLOR_WHITE, curses.COLOR_BLUE)
 
-        self.card_renderer = card_renderer
-
-
     def draw_game_board(self, stock_pile, tableau_piles, foundation_piles, number_of_moves):
         self.screen.clear()
         self.screen.refresh()
+
+        self.draw_foundation_piles(foundation_piles)
 
         self.draw_stock_pile(stock_pile)
 
         self.draw_tableau_piles(tableau_piles)
 
-        self.draw_foundation_piles(foundation_piles)
+        # self.draw_foundation_piles(foundation_piles)
 
-        self.draw_number_of_moves(number_of_moves)
+        self.draw_moves(number_of_moves)
 
         self.screen.refresh()
 
-    def draw_card(self, card, x=0, y=0, is_first=False, color=None):
+    def draw_card(self, card, x=0, y=0, is_first=False):
         if not card:
             return None
         if is_first:
@@ -104,7 +126,8 @@ class Drawer:
             return None
 
         if tableau_pile.is_selected:
-            self.draw_border_around_object(x, y, self.card_width+2, len(cards) * self.card_hidden_height + self.card_height)
+            self.draw_border_around_object(x, y, self.card_width + 2,
+                                           len(cards) * self.card_hidden_height + self.card_height)
 
         for i, card in enumerate(cards):
             if i == len(cards) - 1:
@@ -129,9 +152,12 @@ class Drawer:
         self.draw_card(card, x, y, is_first=True)
 
     def draw_foundation_piles(self, foundation_piles):
-        starting_x = 7 * (self.card_width + self.column_gap) + self.card_width + self.column_gap
+        starting_x = 8 * (self.card_width + self.column_gap)
+        print("Starting X:", starting_x)
+        print("Column:", self.column_gap)
+        print("Screen width:", self.screen_width)
         for i, foundation_pile in enumerate(foundation_piles):
-            self.draw_foundation_pile(foundation_pile, starting_x, self.row_gap + i * (self.card_height + self.row_gap))
+            self.draw_foundation_pile(foundation_pile, starting_x, self.row_gap + i * (self.card_height + self.card_height))
 
     def draw_blank_card(self, suit_symbol, x=0, y=0):
         blank_card = self.card_renderer.render_blank_card(suit_symbol)
@@ -141,6 +167,7 @@ class Drawer:
             lines = blank_card
 
         for i, line in enumerate(lines):
+            print(len(line))
             self.screen.addstr(y + i, x, line, curses.color_pair(self.foreground_color))
 
     def draw_stock_pile(self, stock_pile, x=1, y=0):
@@ -159,7 +186,6 @@ class Drawer:
             return
 
         card_gap = self.column_gap
-
 
         visible_cards = stock_pile.visible_cards[-self.numbers_of_cards_in_stock_pile:]
 
@@ -185,35 +211,39 @@ class Drawer:
             self.screen.addch(y + i, x, curses.ACS_VLINE)
             self.screen.addch(y + i, x + width - 1, curses.ACS_VLINE)
 
-    def draw_number_of_moves(self, number_of_moves):
+    def draw_moves(self, number_of_moves, x=0, y=0):
         moves_text = f"Liczba ruchów: {number_of_moves}"
-        self.screen.addstr(0, 0, moves_text, curses.color_pair(self.secondary_color))
 
-    def show_win_message(self,number_of_moves,time):
-        self.screen.clear()
-        win_message = "Gratulacje! Wygrałeś grę!"
-        meta = f"Zajeło ci to {number_of_moves} posunięć."
-        time = f"Czas gry: {time} sekund"
-        play_again = f"Kliknij R aby zagrać ponownie"
-        lines = [win_message, meta, time,play_again]
+        print((self.screen_width // 2) - (len(moves_text) // 2))
 
-        for i, line in enumerate(lines):
-            self.screen.addstr(i*2, 10, line, curses.color_pair(self.foreground_color))
+        self.screen.addstr(y, (self.screen_width // 2) - (len(moves_text) // 2), moves_text,
+                           curses.color_pair(self.secondary_color))
 
-        self.screen.refresh()
+    def calculate_gaps(self):
+        self.column_gap = (self.screen_width - self.card_width * 9 - 1) // 8
+        self.row_gap = (self.screen_height - self.card_height * 12) // 2
 
+        if self.column_gap < self.min_column_gap:
+            self.column_gap = self.min_column_gap
+        if self.row_gap < self.min_row_gap:
+            self.row_gap = self.min_row_gap
 
-    def show_loss_message(self,number_of_moves,time):
-        self.screen.clear()
-        loss_message = "Walczyłeś dzielnie, ale przegrałeś"
-        meta = f"Walczyłeś przez {number_of_moves} posunięć"
-        time = f"Zajeło ci to {time}"
-        play_again = f"Kliknij R aby zagrać ponownie"
+    def resize_window(self):
+        self.screen_height, self.screen_width = self.screen.getmaxyx()
+        if isinstance(self.card_renderer, GraphicCardRenderer):
+            self.card_renderer.screen_width = self.screen_width
+        if 150 > self.screen_width > 70:
+            self.card_width = 5
+            self.card_height = 5
+            self.min_row_gap = 3
+            self.min_column_gap = 3
 
-        lines = [loss_message, meta, time, play_again]
+        elif self.screen_width <= 70:
+            self.card_renderer = TextCardRenderer()
+            self.card_width = 3
+            self.card_height = 1
+            self.min_row_gap = 1
+            self.min_column_gap = 1
 
-        for i, line in enumerate(lines):
-            self.screen.addstr(i*10, 10, line, curses.color_pair(self.foreground_color))
-        self.screen.refresh()
-
-
+        curses.resize_term(self.screen_height, self.screen_width)
+        self.calculate_gaps()

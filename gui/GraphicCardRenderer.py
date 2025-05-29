@@ -4,12 +4,14 @@ from gui.AbstractCardRenderer import AbstractCardRenderer
 
 
 class GraphicCardRenderer(AbstractCardRenderer):
-    def __init__(self):
-        pass
+    def __init__(self, screen_width):
+        self.screen_width = screen_width
 
     def render_card(self, card):
         if not card:
             return None
+        if self.screen_width < 150:
+            return self.render_card_small(card)
 
         if not card.is_face_up:
             return [
@@ -39,6 +41,9 @@ class GraphicCardRenderer(AbstractCardRenderer):
         if not card:
             return None
 
+        if self.screen_width < 150:
+            return self.render_small_top_of_the_card(card)
+
         if not card.is_face_up:
             return [
                 f"---------",
@@ -64,6 +69,8 @@ class GraphicCardRenderer(AbstractCardRenderer):
         return card_column
 
     def render_blank_card(self, suit_symbol):
+        if self.screen_width < 150:
+            return self.render_small_blank_card(suit_symbol)
         return [
             f"{suit_symbol}-------{suit_symbol}",
             f"|       |",
@@ -73,3 +80,52 @@ class GraphicCardRenderer(AbstractCardRenderer):
             f"|       |",
             f"{suit_symbol}-------{suit_symbol}"
         ]
+
+    def render_small_top_of_the_card(self, card):
+        if not card:
+            return None
+        if not card.is_face_up:
+            return [
+                f"-----",
+                f"| ? |"
+            ]
+
+        rank_spacing = " " if card.rank == "10" else "  "
+
+        return [
+            f"{card.suit_symbol}---{card.suit_symbol}",
+            f"|{card.rank}{rank_spacing}|"
+        ]
+
+    def render_card_small(self, card):
+        if not card:
+            return None
+        if not card.is_face_up:
+            return [
+                f"-----",
+                f"|- -|",
+                f"| - |",
+                f"|---|",
+                f"-----"
+            ]
+
+        rank_spacing_top = " " if card.rank == "10" else "  "
+        rank_spacing_bottom = " " if card.rank == "10" else "  "
+
+        return [
+            f"{card.suit_symbol}---{card.suit_symbol}",
+            f"|{card.rank}{rank_spacing_top}|",
+            f"| {card.suit_symbol} |",
+            f"|{rank_spacing_bottom}{card.rank}|",
+            f"{card.suit_symbol}---{card.suit_symbol}"
+        ]
+
+    def render_small_blank_card(self, suit_symbol):
+        return [
+            f"{suit_symbol}---{suit_symbol}",
+            f"|   |",
+            f"| {suit_symbol} |",
+            f"|   |",
+            f"{suit_symbol}---{suit_symbol}"
+        ]
+

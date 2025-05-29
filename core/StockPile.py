@@ -25,7 +25,6 @@ class StockPile(CardStack):
             card.flip()
             self.visible_cards.append(card)
 
-
     def remove_top_card(self):
         if not self.hidden_cards:
             return None
@@ -46,5 +45,3 @@ class StockPile(CardStack):
             self.shuffle_deck()
             return
         self.visible_cards.pop()
-
-

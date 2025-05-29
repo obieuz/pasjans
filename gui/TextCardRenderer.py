@@ -7,9 +7,9 @@ class TextCardRenderer(AbstractCardRenderer):
 
     def render_card(self, card):
         if not card.is_face_up:
-            return "[ ? ]"
+            return " ? "
         rank_spacing_top = " " if card.rank != "10" else ""
-        return f"""[{card.rank}{rank_spacing_top}{card.suit_symbol}]"""
+        return f"""{card.rank}{rank_spacing_top}{card.suit_symbol}"""
 
     def render_top_of_the_card(self, card):
         return self.render_card(card)
@@ -21,4 +21,4 @@ class TextCardRenderer(AbstractCardRenderer):
         return card_column
 
     def render_blank_card(self, suit_symbol):
-        return f"[ ? {suit_symbol} ]"
+        return f"? {suit_symbol}"

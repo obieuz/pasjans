@@ -19,8 +19,6 @@ class KeyboardInputHandler(InputHandler, ABC):
             return "help"
         elif key == ord('r'):
             return "restart"
-        elif key == ord('s'):
-            return "save"
         elif key == ord('l'):
             return "load"
         elif key == curses.KEY_UP:
@@ -33,5 +31,7 @@ class KeyboardInputHandler(InputHandler, ABC):
             return "move_right"
         elif key == curses.KEY_ENTER or key == 10 or key == 13:
             return "use"
+        elif key == curses.KEY_RESIZE:
+            return "resize"
         else:
             return None
