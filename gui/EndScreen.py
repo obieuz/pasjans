@@ -64,13 +64,13 @@ class EndScreen:
         self.console.print(Align.center(title_text))
         self.console.print()
 
-        stats_text = Text(
-            f"{main_message}\n\n"
-            f"Twoje statystyki:\n"
-            f"  Liczba ruchów: [bold yellow]{moves_count}[/bold yellow]\n"
-            f"  Czas gry: [bold yellow]{formatted_time}[/bold yellow]",
-            justify="center"
-        )
+        stats_text = Text(justify="center")
+        stats_text.append(f"{main_message}\n\n")
+        stats_text.append("Twoje statystyki:\n")
+        stats_text.append("  Liczba ruchów: ")
+        stats_text.append(f"{moves_count}\n", style="bold yellow")
+        stats_text.append("  Czas gry: ")
+        stats_text.append(f"{formatted_time}", style="bold yellow")
 
         summary_panel = Panel(
             stats_text,
